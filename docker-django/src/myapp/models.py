@@ -23,6 +23,7 @@ class Jogo(models.Model):
 class Empresa(models.Model):
    nome = models.CharField(max_length=80)
    jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name="empresas") # Relação de empresa com um jogo
+   
    def __str__(self):
         return f"{self.nome} ({self.jogo.nome})" 
    
