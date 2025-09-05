@@ -3,12 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import random
-
+from cenarios.models import Cenario
 class Jogo(models.Model):
     nome = models.CharField(max_length=80)
     status = models.BooleanField(default=True) # Ativo == True Inativo == False
     codigo = models.CharField(max_length=9, unique=True, editable=False)
-    cenario = models.CharField(max_length=80,blank=True) # Por enquanto isso, ver como será feita essa ligação/integração com Model e contexto do caso de uso de Cenário
+    cenario = models.ForeignKey(Cenario, on_delete=models.CASCADE, related_name="jogos")
     periodo_atual = models.PositiveIntegerField(default=1)
 
     def gerar_codigo(self):
