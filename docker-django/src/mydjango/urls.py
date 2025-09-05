@@ -26,9 +26,10 @@ from django.http import HttpResponse
 # from ..myapp import views
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('myapp/', include("myapp.urls")),
+    path('myapp/', include('myapp.urls')),
     path('cenarios/', include("cenarios.urls")) 
    
 ]

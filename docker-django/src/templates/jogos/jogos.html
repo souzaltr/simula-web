@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogos • CRUD Único</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--b:#0e5f9e;--c:#1b76bd;--bg:#f3f6fb;--card:#fff;--muted:#6b7280;--danger:#ef4444;--shadow:0 10px 20px rgba(12,76,128,.08);--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
+.top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
+.wrap{max-width:1100px;margin:0 auto}
+.container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:340px 1fr}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+h2{margin:0 0 10px}
+.btn{display:inline-block;background:var(--b);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+.btn.alt{background:#0ea5e9}
+.btn.danger{background:var(--danger)}
+.list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow:auto}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.item a{color:#0f172a;text-decoration:none;font-weight:700}
+.pill{padding:6px 10px;border-radius:999px;background:#e8f2fc;color:#0c4c80;font-weight:700;font-size:12px;display:inline-block}
+.row{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+label{display:block;font-size:14px;color:#111827;margin-bottom:4px}
+input[type="text"], input[type="number"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.chk{display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left}
+.badge{display:inline-block;background:#ecfeff;color:#075985;padding:8px 10px;border-radius:10px;margin-bottom:10px}
+.msg{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#ecfeff;color:#075985}
+@media(max-width:980px){.container{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><strong>Simulare</strong> • Jogos</div></div>
+
+<div class="wrap" style="margin-top:16px">
+  {% if messages %}
+    {% for m in messages %}<div class="msg">{{ m }}</div>{% endfor %}
+  {% endif %}
+</div>
+
+<div class="container">
+  <aside class="card">
+    <h2>Jogos</h2>
+    <div class="list">
+      {% for j in jogos %}
+        <div class="item">
+          <div>
+            <a href="?edit={{ j.id }}">{{ j.nome }}</a>
+            <div class="pill" style="margin-top:6px">{{ j.codigo }}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Cenário: {{ j.cenario|default:"—" }} • Período: {{ j.periodo_atual }}</div>
+          </div>
+          <div>
+            {% if j.status %}
+              <span class="pill">Ativo</span>
+            {% else %}
+              <span class="pill" style="background:#fee2e2;color:#991b1b">Inativo</span>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="item"><span class="muted">Nenhum jogo cadastrado.</span></div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <main class="card">
+    {% if jogo_edit %}
+      <div class="badge">Editando: {{ jogo_edit.nome }}</div>
+      <form method="post" style="display:grid;gap:14px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="id" value="{{ jogo_edit.id }}">
+        <div class="row">
+          <div>
+            <label>Nome</label>
+            <input type="text" name="nome" value="{{ jogo_edit.nome }}" required>
+          </div>
+          <div>
+            <label>Cenário</label>
+            <input type="text" name="cenario" value="{{ jogo_edit.cenario }}">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Período Atual</label>
+            <input type="number" name="periodo_atual" value="{{ jogo_edit.periodo_atual }}" min="1">
+          </div>
+          <div class="chk" style="margin-top:28px">
+            <input type="checkbox" id="st" name="status" {% if jogo_edit.status %}checked{% endif %}>
+            <label for="st">Ativo</label>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" type="submit">Salvar</button>
+          <a class="btn alt" href="{% url 'myapp:jogos_crud' %}">Novo</a>
+        </div>
+      </form>
+      <form method="post" style="margin-top:10px" onsubmit="return confirm('Excluir este jogo?');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="id" value="{{ jogo_edit.id }}">
+        <button class="btn danger" type="submit">Excluir</button>
+      </form>
+    {% else %}
+      <div class="badge">Criar novo jogo</div>
+      <form method="post" style="display:grid;gap:14px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="row">
+          <div>
+            <label>Nome</label>
+            <input type="text" name="nome" required>
+          </div>
+          <div>
+            <label>Cenário</label>
+            <input type="text" name="cenario">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Período Atual</label>
+            <input type="number" name="periodo_atual" value="1" min="1">
+          </div>
+          <div class="chk" style="margin-top:28px">
+            <input type="checkbox" id="st2" name="status" checked>
+            <label for="st2">Ativo</label>
+          </div>
+        </div>
+        <div>
+          <button class="btn" type="submit">Criar</button>
+        </div>
+      </form>
+    {% endif %}
+  </main>
+</div>
+</body>
+</html>

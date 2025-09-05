@@ -1,16 +1,9 @@
-from django.conf.urls import url ,  include
-
-from django.contrib import admin
-from django.conf.urls.static import static
-from django.conf import settings
-
-
 from django.urls import path
-from django.http import HttpResponse
+from . import views
 
-from .import views
+app_name = 'myapp'
 
 urlpatterns = [
-    path("home", views.pagina_home)
-
+    path('home', views.pagina_home, name='home'),
+    path('jogos', views.jogos_crud, name='jogos_crud')
 ]
