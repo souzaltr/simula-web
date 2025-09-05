@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myapp.apps.MyappConfig',
+    'myapp',
     'celery',
+    'cenarios',
 ]
 
 AUTH_USER_MODEL = 'myapp.Usuario'
