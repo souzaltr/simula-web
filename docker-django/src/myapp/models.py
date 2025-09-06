@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import random
 from cenarios.models import Cenario
+
+
+
 class Jogo(models.Model):
     nome = models.CharField(max_length=80)
     status = models.BooleanField(default=True) # Ativo == True Inativo == False

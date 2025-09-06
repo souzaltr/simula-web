@@ -5,5 +5,6 @@ app_name = 'myapp'
 
 urlpatterns = [
     path('home', views.pagina_home, name='home'),
-    path('jogos', views.jogos_crud, name='jogos_crud')
+    path('jogos', views.jogos_crud, name='jogos_crud'),
+    path('jogos/<int:jogo_id>/empresas/', views.empresas_crud, name='empresas_crud')
 ]

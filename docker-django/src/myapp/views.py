@@ -7,14 +7,14 @@ from django.urls import reverse
 
 from django.http import HttpResponse
 
-from .models import DemoModel, Jogo
+from .models import DemoModel, Jogo, Empresa
 
 def pagina_home(request):
     contexto = {"nome": "Alessandro"}
     return render(request, 'home.html', contexto)
 
 def jogos_teste(request):
-    return render(request, 'jogos/jogos.html')
+    return render(request, 'empresas/empresas.html')
 
 def jogos_crud(request):
     if request.method == 'POST':
@@ -23,14 +23,9 @@ def jogos_crud(request):
         if action == 'create':
             nome = (request.POST.get('nome') or '').strip()
             cenario = (request.POST.get('cenario') or '').strip()
-            periodo_raw = request.POST.get('periodo_atual') or '1'
-            try:
-                periodo_atual = int(periodo_raw)
-            except ValueError:
-                periodo_atual = 1
-            status = request.POST.get('status') == 'on'
+ 
 
-            jogo = Jogo(nome=nome, cenario=cenario, periodo_atual=periodo_atual, status=status)
+            jogo = Jogo(nome=nome, cenario=cenario)
             if not jogo.codigo and hasattr(jogo, 'gerar_codigo'):
                 jogo.codigo = jogo.gerar_codigo()
             jogo.save()
@@ -67,6 +62,33 @@ def jogos_crud(request):
     jogos = Jogo.objects.order_by('nome')
     return render(request, 'jogos/jogos.html', {'jogos': jogos, 'jogo_edit': jogo_edit})
 
+def empresas_crud(request, jogo_id):
+    jogo = get_object_or_404(Jogo, pk=jogo_id)
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        if action == 'create':
+            nome = (request.POST.get('nome') or '').strip()
+            if nome:
+                Empresa.objects.create(nome=nome, jogo=jogo)
+            return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+        elif action == 'update':
+            emp_id = request.POST.get('id')
+            empresa = get_object_or_404(Empresa, pk=emp_id, jogo=jogo)
+            empresa.nome = (request.POST.get('nome') or empresa.nome).strip()
+            empresa.save()
+            return redirect(f"{reverse('myapp:empresas_crud', args=[jogo.id])}?edit={empresa.id}")
+        elif action == 'delete':
+            emp_id = request.POST.get('id')
+            empresa = get_object_or_404(Empresa, pk=emp_id, jogo=jogo)
+            empresa.delete()
+            return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+        return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+
+    edit_id = request.GET.get('edit')
+    empresa_edit = Empresa.objects.filter(pk=edit_id, jogo=jogo).first() if edit_id else None
+    empresas = Empresa.objects.filter(jogo=jogo).order_by('nome')
+    return render(request, 'empresas/empresas.html', {'jogo': jogo, 'empresas': empresas, 'empresa_edit': empresa_edit})
 
     
 
