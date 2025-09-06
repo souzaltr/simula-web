@@ -1,7 +1,7 @@
 from django.db import models
-
+from django.core.exceptions import ValidationError
 from django.db import models
-
+import random
 
 class Jogo(models.Model):
     ATIVO, INATIVO = 'A', 'I'
@@ -14,6 +14,28 @@ class Jogo(models.Model):
     periodo_anterior = models.PositiveIntegerField(default=0)
     periodo_atual = models.PositiveIntegerField(default=0)
     status_decisoes_disponiveis = models.BooleanField(default=False)
+
+    def gerar_codigo(self):
+        while True:
+            codigo = str(random.randint(100000000,999999999))
+            if not Jogo.objects.filter(codigo=codigo).exists():
+                return codigo
+    
+    def clean(self):
+        if not self.nome.strip():
+           raise ValidationError({"nome":"Nome não pode ser vazio ou somente espaços."}) 
+
+    @property
+    def num_jogador(self):
+        return self.usuarios.count()
+
+    def save(self, args, **kwargs):
+        if not self.cod:  # Gera o código apenas na criação de um novo jogo
+            self.cod = self.gerar_codigo()
+        super().save(args, **kwargs)
+
+    def str(self):
+        return f"{self.nome} ({self.cod}) - Status: {self.status}"
 
     class Meta:
         constraints = [
