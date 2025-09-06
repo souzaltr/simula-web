@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp',
     'celery',
+    'jogos',
     'cenarios',
+    'simulacao',
 ]
 
-AUTH_USER_MODEL = 'myapp.Usuario'
 
 
 MIDDLEWARE = [
