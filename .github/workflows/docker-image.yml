@@ -1,4 +1,4 @@
-name: Build and publish a docker image with the branch name as the tag
+name: Build and publish Docker images with branch name as the tag
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
+  build-and-push-images:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,20 +35,17 @@ jobs:
           username: ${{ env.REGISTRY_USERNAME }}
           password: ${{ env.REGISTRY_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: docker_metadata
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            ${{ steps.repo_metadata.outputs.branch_name }}
+      - name: Build and tag Docker images for web and db
+        run: |
+          # Build the web image using the Dockerfile in compose/django
+          docker-compose -f docker-compose.yml build web
+          docker tag <your_web_image> ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          file: ./docker-django/Dockerfile
-          tags: ${{ steps.docker_metadata.outputs.tags }}
-          labels: ${{ steps.docker_metadata.outputs.labels }}
-          build-args: GITHUB_PAT=${{ secrets.GH_PACKAGE_WRITE_PAT }}
+          # Build the db image using the Dockerfile in compose/postgres
+          docker-compose -f docker-compose.yml build db
+          docker tag <your_db_image> ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
+
+      - name: Push Docker images to the registry
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
