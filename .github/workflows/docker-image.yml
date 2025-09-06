@@ -43,12 +43,14 @@ jobs:
 
       - name: Build and tag Docker images for web and db
         run: |
-          # Usando o caminho correto para o docker-compose.yml
+          # Build the web image using the Dockerfile in compose/django
           docker-compose -f docker-django/docker-compose.yml build web
-          docker tag docker-django/web:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
-
+          docker tag docker-django/web:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name | lower }}
+      
+          # Build the db image using the Dockerfile in compose/postgres
           docker-compose -f docker-django/docker-compose.yml build db
-          docker tag docker-django/db:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
+          docker tag docker-django/db:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name | lower }}
+
 
       - name: Push Docker images to the registry
         run: |
