@@ -45,10 +45,10 @@ jobs:
         run: |
           # Usando o caminho correto para o docker-compose.yml
           docker-compose -f docker-django/docker-compose.yml build web
-          docker tag <your_web_image> ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
+          docker tag docker-django/web:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
 
           docker-compose -f docker-django/docker-compose.yml build db
-          docker tag <your_db_image> ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
+          docker tag docker-django/db:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
 
       - name: Push Docker images to the registry
         run: |
