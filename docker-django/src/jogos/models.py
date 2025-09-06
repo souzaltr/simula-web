@@ -24,10 +24,7 @@ class Jogo(models.Model):
         if not (self.nome or '').strip():
             raise ValidationError({"nome": "Nome não pode ser vazio ou somente espaços."})
         
-        if not self.cenario:
-            raise ValidationError({"cenario": "Selecione um cenário para criar o jogo."})
-        
-        if not self.status:
+        if not self.cenario_id:
             raise ValidationError({"cenario": "Selecione um cenário para criar o jogo."})
 
     @property
