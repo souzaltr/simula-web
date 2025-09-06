@@ -47,27 +47,54 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 <div class="container">
   <aside class="card">
     <h2>Jogos</h2>
+    
+    <form id="batchForm" method="post" style="margin-bottom: 16px;">
+      {% csrf_token %}
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn alt" id="toggleBtn" style="display: none;">
+                onclick="submitToggleStatus()">
+          Ativar/Inativar
+        </button>
+        
+        <button type="button" class="btn" id="simulateBtn" 
+                onclick="alert('Redirecionando para simulação...')">
+          Simular
+        </button>
+        
+        <span id="selectedCount" style="font-size: 13px; color: var(--muted); display: none;">
+          0 selecionados
+        </span>
+      </div>
+    </form>
+    
     <div class="list">
       {% for j in jogos %}
         <div class="item">
-          <div>
-            <a href="?edit={{ j.id }}">{{ j.nome }} ({{ j.cod }})</a>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px">
-              Cenário: {{ j.cenario.nome }}{% if j.cenario.produto %} • Produto: {{ j.cenario.produto }}{% endif %}
-            </div>
-            <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:6px">
-              <a href="{% url 'myapp:empresas_crud' j.id %}">Empresas →</a>
-              <!-- Botão Apagar direto na lista -->
-              <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="id" value="{{ j.id }}">
-                <button class="btn danger" type="submit">Apagar</button>
-              </form>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" name="jogos_selecionados" value="{{ j.id }}" 
+                   class="jogos-selecionados" onchange="updateSelection()">
+            
+            <div>
+              <a href="?edit={{ j.id }}">{{ j.nome }} (Cód:{{ j.cod }})</a>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">
+                Cenário: {{ j.cenario.nome }}
+              </div>
+              <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:6px">
+                <a href="{% url 'myapp:empresas_crud' j.id %}">Empresas →</a>
+                <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="{{ j.id }}">
+                  <button class="btn danger" type="submit">Apagar</button>
+                </form>
+              </div>
             </div>
           </div>
+          
           <div>
-            <span class="badge-pill">{% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}</span>
+            <span class="badge-pill" data-status="{{ j.status }}">
+              {% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}
+            </span>
           </div>
         </div>
       {% empty %}
@@ -97,7 +124,6 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
           <button class="btn" type="submit">Salvar</button>
           <a class="btn alt" href="{% url 'myapp:jogos_crud' %}">Novo</a>
-          <!-- Botão Apagar também no modo edição -->
           <form method="post" onsubmit="return confirm('Excluir este jogo?');" style="margin:0">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete">
@@ -139,7 +165,6 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
         <div class="cenario-item">
           <div>
             <strong>{{ c.nome }}</strong>
-            {% if c.produto %}<div style="font-size:12px;color:var(--muted)">Produto: {{ c.produto }}</div>{% endif %}
           </div>
           <button class="btn alt" type="button" onclick="pickCenario('{{ c.id }}','{{ c.nome|escapejs }}')">Selecionar</button>
         </div>
@@ -169,6 +194,66 @@ function ensureCenario(){
   }
   return true;
 }
+
+function updateSelection() {
+  const checkboxes = document.querySelectorAll('.jogos-selecionados:checked');
+  const count = checkboxes.length;
+  const selectedCount = $('#selectedCount');
+  const toggleBtn = $('#toggleBtn');
+  
+  selectedCount.textContent = count + ' selecionado' + (count !== 1 ? 's' : '');
+  selectedCount.style.display = count > 0 ? 'inline' : 'none';
+  
+  toggleBtn.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+// ✅ NOVA FUNÇÃO PARA ENVIAR O FORMULÁRIO
+function submitToggleStatus() {
+  const checkboxes = document.querySelectorAll('.jogos-selecionados:checked');
+  const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+  
+  if (selectedIds.length === 0) {
+    alert('Selecione pelo menos um jogo.');
+    return;
+  }
+  
+  // Criar um formulário dinâmico
+  const form = document.createElement('form');
+  form.method = 'post';
+  form.action = '';
+  
+  // Adicionar CSRF token
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const csrfInput = document.createElement('input');
+  csrfInput.type = 'hidden';
+  csrfInput.name = 'csrfmiddlewaretoken';
+  csrfInput.value = csrfToken;
+  form.appendChild(csrfInput);
+  
+  // Adicionar action
+  const actionInput = document.createElement('input');
+  actionInput.type = 'hidden';
+  actionInput.name = 'action';
+  actionInput.value = 'alterar_status';
+  form.appendChild(actionInput);
+  
+  // Adicionar IDs selecionados
+  selectedIds.forEach(id => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'jogos_selecionados';
+    input.value = id;
+    form.appendChild(input);
+  });
+  
+  // Enviar formulário
+  document.body.appendChild(form);
+  form.submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateSelection();
+});
 </script>
 </body>
 </html>

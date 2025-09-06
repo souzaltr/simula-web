@@ -12,8 +12,6 @@ from myapp.models import Empresa
 
 from cenarios.models import Cenario
 
-import random
-
 def pagina_home(request):
     contexto = {"nome": "Alessandro"}
     return render(request, 'home.html', contexto)
@@ -22,11 +20,6 @@ def jogos_teste(request):
     return render(request, 'empresas/empresas.html')
 
 def jogos_crud(request):
-    def gerar_cod_unico():
-        while True:
-            codigo = str(random.randint(100000000, 999999999))
-            if not Jogo.objects.filter(cod=codigo).exists():
-                return codigo
 
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
@@ -35,7 +28,7 @@ def jogos_crud(request):
             nome = (request.POST.get('nome') or '').strip()
             cenario_id = request.POST.get('cenario_id')
             cenario = get_object_or_404(Cenario, pk=cenario_id)
-            jogo = Jogo(nome=nome, cenario=cenario, cod=gerar_cod_unico())
+            jogo = Jogo(nome=nome, cenario=cenario)
             jogo.save()
             return redirect(reverse('myapp:jogos_crud'))
 
@@ -48,6 +41,7 @@ def jogos_crud(request):
                 cenario = get_object_or_404(Cenario, pk=cenario_id)
                 jogo.cenario = cenario
             jogo.nome = nome
+            jogo.full_clean()
             jogo.save()
             return redirect(f"{reverse('myapp:jogos_crud')}?edit={jogo.pk}")
 
@@ -55,6 +49,20 @@ def jogos_crud(request):
             pk = request.POST.get('id')
             jogo = get_object_or_404(Jogo, pk=pk)
             jogo.delete()
+            return redirect(reverse('myapp:jogos_crud'))
+        
+        elif action == 'alterar_status':
+            selecionados = request.POST.getlist('jogos_selecionados')
+            valid_ids = []
+            for id_str in selecionados:
+                if id_str.isdigit():
+                    valid_ids.append(int(id_str))
+            
+            if valid_ids:
+                jogos = Jogo.objects.filter(id__in=valid_ids)
+                for jogo in jogos:
+                    jogo.status = Jogo.INATIVO if jogo.status == Jogo.ATIVO else Jogo.ATIVO
+                    jogo.save()
             return redirect(reverse('myapp:jogos_crud'))
 
         return redirect(reverse('myapp:jogos_crud'))
@@ -77,7 +85,9 @@ def empresas_crud(request, jogo_id):
         if action == 'create':
             nome = (request.POST.get('nome') or '').strip()
             if nome:
-                Empresa.objects.create(nome=nome, jogo=jogo)
+                empresa = Empresa(nome=nome, jogo=jogo)
+                empresa.full_clean()
+                empresa.save()
             return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
         elif action == 'update':
             emp_id = request.POST.get('id')
@@ -98,17 +108,3 @@ def empresas_crud(request, jogo_id):
     empresas = Empresa.objects.filter(jogo=jogo).order_by('nome')
     return render(request, 'empresas/empresas.html', {'jogo': jogo, 'empresas': empresas, 'empresa_edit': empresa_edit})
 
-    
-
-class ShowHelloWorld(TemplateView):
-    template_name = 'hello_world.html'
-
-    def get(self, *args, **kwargs):
-        show_hello_world.apply()
-        return super().get(*args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['demo_content'] = DemoModel.objects.all()
-        context['version'] = get_version()
-        return context

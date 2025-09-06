@@ -6,7 +6,7 @@ from jogos.models import Jogo
 
 class Empresa(models.Model):
    nome = models.CharField(max_length=80)
-   jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name="empresas") # Relação de empresa com um jogo
+   jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE,editable=False, related_name="empresas") # Relação de empresa com um jogo
    
    def clean(self):
        if not self.nome.strip():
