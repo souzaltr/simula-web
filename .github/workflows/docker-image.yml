@@ -32,7 +32,10 @@ jobs:
       - name: Extract branch name
         id: repo_metadata
         shell: bash
-        run: echo "##[set-output name=branch_name;]$(echo ${GITHUB_REF##*/})"
+        run: |
+          # Extraindo o nome da branch e convertendo para minúsculas
+          branch_name=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
+          echo "branch_name=$branch_name" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@v1
@@ -43,16 +46,14 @@ jobs:
 
       - name: Build and tag Docker images for web and db
         run: |
-          # Build the web image using the Dockerfile in compose/django
+          # Usando o nome da branch convertida para minúsculas
           docker-compose -f docker-django/docker-compose.yml build web
-          docker tag docker-django/web:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name | lower }}
-      
-          # Build the db image using the Dockerfile in compose/postgres
-          docker-compose -f docker-django/docker-compose.yml build db
-          docker tag docker-django/db:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name | lower }}
+          docker tag docker-django/web:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ env.branch_name }}
 
+          docker-compose -f docker-django/docker-compose.yml build db
+          docker tag docker-django/db:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ env.branch_name }}
 
       - name: Push Docker images to the registry
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ steps.repo_metadata.outputs.branch_name }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ steps.repo_metadata.outputs.branch_name }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ env.branch_name }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-db:${{ env.branch_name }}
