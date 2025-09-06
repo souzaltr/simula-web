@@ -14,9 +14,9 @@ class Insumo(models.Model):
     ]
 
     nome = models.CharField(max_length=100)
-    fornecedor = models.CharField(max_length=100)
-    forma_pagamento = models.CharField(max_length=25, choices=FormasPagamento)
-    quantidade = models.PositiveIntegerField()
+    fornecedor = models.CharField(max_length=100,)
+    forma_pagamento = models.CharField(max_length=25, choices=FormasPagamento, null=True,blank=True)
+    quantidade = models.PositiveIntegerField(null=True,blank=True)
 
     def __str__(self):
         return f"{self.nome} - Fornecedor {self.fornecedor}"
@@ -27,12 +27,14 @@ class Produto(models.Model):
     insumos = models.ManyToManyField(Insumo, related_name="produtos") #relação entre produtos e insumos
 
     def __str__(self):
-        return f"{self.nome} Insumos: {self.insumos}"
+        insumos_nomes = [i.nome for i in self.insumos.all()]
+        return f"{self.nome} {insumos_nomes}"
 
 
 class Cenario(models.Model):
     nome = models.CharField(max_length=100)
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name="cenarios")
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name="cenarios",blank=False,null=False)
 
     def __str__(self):
         return f"{self.nome} Com o Produto: {self.produto}"
+    

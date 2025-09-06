@@ -1,40 +1,73 @@
-from django.shortcuts import render
-
+from django.shortcuts import render,redirect,get_object_or_404
+from .models import Insumo,Cenario,Produto 
+from .forms import InsumoForm,ProdutoForm,CenarioForm
+from django.http import HttpRequest
 # Create your views here.
 
 from django.http import HttpResponse
 
-def cenarios_view(request):
+#lógica dos CRUDs em uma unica função da view
+def cenarios_view(request:HttpRequest):
+   
+    insumo_form = InsumoForm()
+    produto_form = ProdutoForm()
+    cenario_form = CenarioForm()
+
+
     #lista todos cenarios,produtos e insumo
-    #insumos = Insumo.objects.all()
-    #cenarios = Cenario.objects.all()
-    #fazer um contexto que pega o usuario logado "request.user" para colocar no render
-    return render(request,'cenarios/cenarios.html')
+    contexto = { 
+        "insumos": Insumo.objects.all(),
+        "cenarios": Cenario.objects.all(),
+        "produtos": Produto.objects.all(),
+        "insumo_form": insumo_form,
+        "produto_form": produto_form,
+        "cenario_form": cenario_form,
+    }
 
-#lógica dos CRUDs
-def cenarios_adicionar(request):
-    return render(request,'cenarios/cenarios.html')
+    
+    
+    if request.method == "POST":
+        model_type = request.POST.get("model_type")
+        action = request.POST.get("action")
 
-def cenarios_deletar(request):
-    return render(request,'cenarios/cenarios.html')
+        if model_type == "insumo":
+            if action == "create":
+                formInsumo = InsumoForm(request.POST)
+                if formInsumo.is_valid():
+                    formInsumo.save()
+                    return redirect("cenarios:home")
+                
+        if model_type == "produto":
+            if action == "create":
+                formProduto = ProdutoForm(request.POST)
+                if formProduto.is_valid():
+                    formProduto.save()
+                    return redirect("cenarios:home")
+                
+        if model_type == "cenario":
+            if action == "create":
+                formCenario = CenarioForm(request.POST)
+                if formCenario.is_valid():
+                    formCenario.save()
+                    return redirect("cenarios:home")
+                
+    return render(request,'cenarios/cenarios.html',contexto)
 
-def cenarios_editar(request):
-    return render(request,'cenarios/cenarios.html')
 
-def insumos_adicionar(request):
-    return render(request,'cenarios/cenarios.html')
 
-def insumos_deletar(request):
-    return render(request,'cenarios/cenarios.html')
 
-def insumoms_editar(request):
-    return render(request,'cenarios/cenarios.html')
+def removerInsumo(request:HttpRequest,id):
+    insumo = get_object_or_404(Insumo,id=id)
+    insumo.delete()
+    return redirect("cenarios:home")
 
-def produto_adicionar(request):
-    return render(request,'cenarios/cenarios.html')
+def removerProduto(request:HttpRequest,id):
+    produto = get_object_or_404(Produto,id=id)
+    produto.delete()
+    return redirect("cenarios:home")
 
-def produto_deletar(request):
-    return render(request,'cenarios/cenarios.html')
-
-def produto_editar(request):
-    return render(request,'cenarios/cenarios.html')
+def removerCenario(request:HttpRequest,id):
+    #logica de ver se o cenario está em um jogo ativo
+    cenario = get_object_or_404(Cenario,id=id)
+    cenario.delete()
+    return redirect("cenarios:home")

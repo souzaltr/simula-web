@@ -6,8 +6,9 @@ from .import views
 app_name = "cenarios"
 
 urlpatterns = [
-    path("", views.cenarios_view), 
-    path("adicionar/",views.cenarios_adicionar,name="adicionarCenario"),
-    path("insumos/adicionar",views.insumos_adicionar),
-    path("produto/adicionar",views.produto_adicionar)
+    path("", views.cenarios_view, name="home"),
+    path("remover/<int:id>",views.removerCenario,name="removerCenario"),
+    path("insumos/remover/<int:id>", views.removerInsumo,name="removerInsumo"),
+    path("produtos/remover/<int:id>",views.removerProduto,name="removerProduto"),
+
 ]
