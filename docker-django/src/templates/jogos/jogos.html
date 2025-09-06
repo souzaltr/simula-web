@@ -51,14 +51,13 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
     <form id="batchForm" method="post" style="margin-bottom: 16px;">
       {% csrf_token %}
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <button type="button" class="btn alt" id="toggleBtn" style="display: none;">
-                onclick="submitToggleStatus()">
-          Ativar/Inativar
-        </button>
-        
+       <button type="button" class="btn alt" id="toggleBtn" style="display: none;" onclick="submitToggleStatus()">
+         Ativar/Inativar
+       </button>
+
         <button type="button" class="btn" id="simulateBtn" 
-                onclick="alert('Redirecionando para simulação...')">
-          Simular
+        onclick="window.location.href='/simulacao/simular/'">
+        Simular
         </button>
         
         <span id="selectedCount" style="font-size: 13px; color: var(--muted); display: none;">
@@ -67,45 +66,61 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
       </div>
     </form>
     
-    <div class="list">
-      {% for j in jogos %}
-        <div class="item">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="checkbox" name="jogos_selecionados" value="{{ j.id }}" 
-                   class="jogos-selecionados" onchange="updateSelection()">
-            
-            <div>
-              <a href="?edit={{ j.id }}">{{ j.nome }} (Cód:{{ j.cod }})</a>
-              <div style="font-size:12px;color:var(--muted);margin-top:4px">
-                Cenário: {{ j.cenario.nome }}
-              </div>
-              <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:6px">
-                <a href="{% url 'myapp:empresas_crud' j.id %}">Empresas →</a>
-                <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="id" value="{{ j.id }}">
-                  <button class="btn danger" type="submit">Apagar</button>
-                </form>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <span class="badge-pill" data-status="{{ j.status }}">
-              {% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}
-            </span>
-          </div>
-        </div>
-      {% empty %}
-        <div class="item"><span class="muted">Nenhum jogo cadastrado.</span></div>
-      {% endfor %}
+    <!-- Botão global em cima da lista -->
+<div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+  <span id="selectedCount" style="flex:1;font-weight:600;color:var(--muted)"></span>
+  <button type="button" class="btn alt" id="toggleBtn" style="display:none">Ativar/Inativar</button>
+</div>
+
+<div class="item" style="display:flex;align-items:center;justify-content:space-between;">
+  <span style="font-size:14px;color:var(--muted);cursor:pointer;font-weight:600"
+        onclick="selectAllJogos()">
+    Selecionar todos os jogos
+  </span>
+</div>
+
+<div class="list" id="jogosList">
+  {% for j in jogos %}
+    <div class="item" style="flex-direction:column;align-items:flex-start">
+      <!-- Linha 1: checkbox + nome (separados) -->
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <input class="jogo-checkbox" type="checkbox" name="jogos_selecionados" value="{{ j.id }}" id="jogocb-{{ j.id }}">
+        
+        <!-- Nome volta a ser link para edição -->
+        <a href="?edit={{ j.id }}" style="font-weight:700;cursor:pointer;flex:1;text-decoration:none;color:#0f172a">
+          {{ j.nome }} (Cód:{{ j.cod }})
+        </a>
+      </div>
+
+      <!-- Linha 2: cenário -->
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">
+        Cenário: {{ j.cenario.nome }}
+      </div>
+
+      <!-- Linha 3: ações -->
+      <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:6px">
+        <a href="{% url 'myapp:empresas_crud' j.id %}">Empresas →</a>
+
+        <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="id" value="{{ j.id }}">
+          <button class="btn danger" type="submit">Apagar</button>
+        </form>
+
+        <span class="badge-pill">{% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}</span>
+      </div>
     </div>
+  {% empty %}
+    <div class="item"><span class="muted">Nenhum jogo cadastrado.</span></div>
+  {% endfor %}
+</div>
+
   </aside>
 
   <main class="card">
     {% if jogo_edit %}
-      <div class="badge">Editando: {{ jogo_edit.nome }}</div>
+      <div class="badge">Editar: {{ jogo_edit.nome }}</div>
       <form method="post" style="display:grid;gap:14px">
         {% csrf_token %}
         <input type="hidden" name="action" value="update">
@@ -119,7 +134,6 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
         </div>
         <div>
           <span class="badge-pill" id="cenario_label">Cenário selecionado: {{ jogo_edit.cenario.nome }}</span>
-          <button class="btn alt" type="button" onclick="openModal()">Selecionar Cenário</button>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
           <button class="btn" type="submit">Salvar</button>
@@ -179,80 +193,90 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 </div>
 
 <script>
-function $(id){return document.getElementById(id)}
-function openModal(){ $('modalBackdrop').style.display='flex'; $('modalBackdrop').setAttribute('aria-hidden','false') }
-function closeModal(){ $('modalBackdrop').style.display='none'; $('modalBackdrop').setAttribute('aria-hidden','true') }
-function pickCenario(id, nome){
-  $('cenario_id').value = id;
-  $('cenario_label').textContent = 'Cenário selecionado: ' + nome;
-  closeModal();
-}
-function ensureCenario(){
-  if (!$('cenario_id').value){
-    alert('Selecione um cenário antes de criar o jogo.');
-    return false;
-  }
-  return true;
-}
-
-function updateSelection() {
-  const checkboxes = document.querySelectorAll('.jogos-selecionados:checked');
-  const count = checkboxes.length;
-  const selectedCount = $('#selectedCount');
-  const toggleBtn = $('#toggleBtn');
-  
-  selectedCount.textContent = count + ' selecionado' + (count !== 1 ? 's' : '');
-  selectedCount.style.display = count > 0 ? 'inline' : 'none';
-  
-  toggleBtn.style.display = count > 0 ? 'inline-block' : 'none';
-}
-
-// ✅ NOVA FUNÇÃO PARA ENVIAR O FORMULÁRIO
-function submitToggleStatus() {
-  const checkboxes = document.querySelectorAll('.jogos-selecionados:checked');
-  const selectedIds = Array.from(checkboxes).map(cb => cb.value);
-  
-  if (selectedIds.length === 0) {
-    alert('Selecione pelo menos um jogo.');
-    return;
-  }
-  
-  // Criar um formulário dinâmico
-  const form = document.createElement('form');
-  form.method = 'post';
-  form.action = '';
-  
-  // Adicionar CSRF token
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-  const csrfInput = document.createElement('input');
-  csrfInput.type = 'hidden';
-  csrfInput.name = 'csrfmiddlewaretoken';
-  csrfInput.value = csrfToken;
-  form.appendChild(csrfInput);
-  
-  // Adicionar action
-  const actionInput = document.createElement('input');
-  actionInput.type = 'hidden';
-  actionInput.name = 'action';
-  actionInput.value = 'alterar_status';
-  form.appendChild(actionInput);
-  
-  // Adicionar IDs selecionados
-  selectedIds.forEach(id => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'jogos_selecionados';
-    input.value = id;
-    form.appendChild(input);
-  });
-  
-  // Enviar formulário
-  document.body.appendChild(form);
-  form.submit();
+// leitura do cookie CSRF
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  updateSelection();
+  const toggleBtn = document.getElementById('toggleBtn');
+  const selectedCount = document.getElementById('selectedCount');
+
+  // atualiza o estado do botão com base nos checkboxes
+  function updateSelection() {
+    const checked = document.querySelectorAll('.jogo-checkbox:checked').length;
+    if (checked > 0) {
+      toggleBtn.style.display = 'inline-block';
+      selectedCount.textContent = checked + ' selecionado' + (checked > 1 ? 's' : '');
+    } else {
+      toggleBtn.style.display = 'none';
+      selectedCount.textContent = '';
+    }
+  }
+
+  function selectAllJogos() {
+  document.querySelectorAll('.jogo-checkbox').forEach(cb => cb.checked = true);
+  toggleAcaoBtn(); // reaproveita a lógica já existente para mostrar o botão
+}
+
+  // anexa listeners a todos (nova página ou AJAX pode pedir re-run)
+  function bindCheckboxes() {
+    document.querySelectorAll('.jogo-checkbox').forEach(cb => {
+      // evitar múltiplos listeners
+      cb.removeEventListener('change', updateSelection);
+      cb.addEventListener('change', updateSelection);
+    });
+    updateSelection(); // set inicial
+  }
+  bindCheckboxes();
+
+  // Ao clicar no botão, cria um form POST com csrf e envia os ids
+  toggleBtn.addEventListener('click', function() {
+    const checkedEls = Array.from(document.querySelectorAll('.jogo-checkbox:checked'));
+    if (checkedEls.length === 0) return;
+
+    // confirma ação (opcional)
+    if (!confirm('Deseja alternar o status dos jogos selecionados?')) return;
+
+    // cria form dinamicamente e anexa os campos
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = ''; // envia para a mesma URL da página
+
+    // CSRF token (pega do cookie)
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = csrftoken;
+      form.appendChild(csrfInput);
+    }
+
+    // action
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'alterar_status';
+    form.appendChild(actionInput);
+
+    // jogos selecionados
+    checkedEls.forEach(el => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'jogos_selecionados';
+      inp.value = el.value;
+      form.appendChild(inp);
+    });
+
+    // append e submit
+    document.body.appendChild(form);
+    form.submit();
+  });
+
 });
 </script>
 </body>
