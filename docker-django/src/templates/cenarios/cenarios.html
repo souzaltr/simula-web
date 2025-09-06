@@ -7,6 +7,67 @@
 </head>
 <body>
     <h1>Lista Cenários: </h1> 
-    <a href="{%  url 'cenarios:adicionarCenario'%}"> Cadastar Cenário</a>
+
+    <ul>
+        {% for cenario in cenarios %}
+            <li>
+                {{cenario.nome}} - Produto -> {{cenario.produto.nome}}
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <a href="">Editar</a>
+                    <a href="{% url 'cenarios:removerCenario' cenario.id %}">Excluir</a>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="" method="post">
+        {% csrf_token%}
+        {{cenario_form}}
+        <input type="hidden" name="model_type" value="cenario">
+        <button type="submit" name="action" value="create">Cadastrar Cenário</button>
+    </form>
+
+    <h1>Lista Produtos: </h1> 
+    <ul>
+        {% for produto in produtos %}
+          <li>
+                {{ produto.nome }} - Insumos: 
+                    {% for insumo in produto.insumos.all %}
+                        {{ insumo.nome }}/
+                 {% endfor %}
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <a href="">Editar</a>
+              <a href="{% url 'cenarios:removerProduto' produto.id %}">Excluir</a>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    <form  action="" method="post">
+        {% csrf_token %}
+        {{produto_form}}
+        <input type="hidden" name="model_type" value="produto">
+        <button type="submit" name="action" value="create">Cadastrar Produto</button>
+    </form>
+
+
+    <h1>Lista Insumos: </h1> 
+   <ul>
+        {% for insumo in insumos %}
+          <li>
+            {{ insumo.nome }} - {{ insumo.fornecedor }}
+            <form method="post" style="display:inline;">
+              <a href="">Editar</a>
+              <a href="{% url 'cenarios:removerInsumo' insumo.id %}">Excluir</a>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    <form  action="" method="post">
+        {% csrf_token %}
+        {{insumo_form}}
+        <input type="hidden" name="model_type" value="insumo">
+        <button type="submit" name="action" value="create">Cadastrar Insumo</button>
+    </form>
 </body>
 </html>
