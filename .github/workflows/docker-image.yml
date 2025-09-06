@@ -1,25 +1,4 @@
-name: Build and publish Docker images with branch name as the tag
-
-on:
-push:
-branches:
-- 'main'
-workflow_dispatch:
-
-env:
-REGISTRY: ghcr.io
-REGISTRY_USERNAME: ${{ github.actor }}
-REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-IMAGE_NAME: ${{ github.repository }}
-
-jobs:
-build-and-push-images:
-runs-on: ubuntu-latest
-permissions:
-contents: read
-packages: write
-
-steps:
+name: Build and publish Docker images with branch name as the tagon:push:branches:- 'main'workflow_dispatch:env:REGISTRY: ghcr.ioREGISTRY_USERNAME: ${{ github.actor }}REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}IMAGE_NAME: ${{ github.repository }}jobs:build-and-push-images:runs-on: ubuntu-latestpermissions:contents: readpackages: writesteps:
   - name: Checkout repository
     uses: actions/checkout@v2
 
