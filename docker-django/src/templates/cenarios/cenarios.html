@@ -14,8 +14,8 @@
                 {{cenario.nome}} - Produto -> {{cenario.produto.nome}}
                 <form method="post" style="display:inline;">
                     {% csrf_token %}
-                    <a href="">Editar</a>
-                    <a href="{% url 'cenarios:removerCenario' cenario.id %}">Excluir</a>
+                    <a href="{% url 'cenarios:editarCenario' cenario.id %}">Editar</a>
+                    <a href="{% url 'cenarios:removerCenario' cenario.id %}" onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{cenario.nome}}?');">Excluir</a>
                 </form>
             </li>
         {% endfor %}
@@ -24,21 +24,21 @@
         {% csrf_token%}
         {{cenario_form}}
         <input type="hidden" name="model_type" value="cenario">
-        <button type="submit" name="action" value="create">Cadastrar Cenário</button>
+        <button type="submit" name="action" value="create">Salvar Cenário</button>
     </form>
 
     <h1>Lista Produtos: </h1> 
     <ul>
         {% for produto in produtos %}
           <li>
-                {{ produto.nome }} - Insumos: 
+                {{ produto.nome }} - Insumos -> 
                     {% for insumo in produto.insumos.all %}
                         {{ insumo.nome }}/
                  {% endfor %}
             <form method="post" style="display:inline;">
               {% csrf_token %}
-              <a href="">Editar</a>
-              <a href="{% url 'cenarios:removerProduto' produto.id %}">Excluir</a>
+              <a href="{% url 'cenarios:editarProduto' produto.id %}">Editar</a>
+              <a href="{% url 'cenarios:removerProduto' produto.id %}" onclick="return confirm('Voce tem certeza que deseja excluir o produto {{produto.nome}}?');">Excluir</a>
             </form>
           </li>
         {% endfor %}
@@ -47,7 +47,7 @@
         {% csrf_token %}
         {{produto_form}}
         <input type="hidden" name="model_type" value="produto">
-        <button type="submit" name="action" value="create">Cadastrar Produto</button>
+        <button type="submit" name="action" value="create">Salvar Produto</button>
     </form>
 
 
@@ -55,10 +55,10 @@
    <ul>
         {% for insumo in insumos %}
           <li>
-            {{ insumo.nome }} - {{ insumo.fornecedor }}
+            {{ insumo.nome }} - Fornecedor -> {{ insumo.fornecedor }}
             <form method="post" style="display:inline;">
-              <a href="">Editar</a>
-              <a href="{% url 'cenarios:removerInsumo' insumo.id %}">Excluir</a>
+              <a href="{% url 'cenarios:editarInsumo' insumo.id %}">Editar</a>
+              <a href="{% url 'cenarios:removerInsumo' insumo.id %}" onclick="return confirm('Voce tem certeza que deseja excluir o insumo {{insumo.nome}}?');">Excluir</a>
             </form>
           </li>
         {% endfor %}
@@ -67,7 +67,8 @@
         {% csrf_token %}
         {{insumo_form}}
         <input type="hidden" name="model_type" value="insumo">
-        <button type="submit" name="action" value="create">Cadastrar Insumo</button>
+        <button type="submit" name="action" value="create">Salvar Insumo</button>
     </form>
+    <a href="{% url 'cenarios:home' %}">Voltar</a>
 </body>
 </html>

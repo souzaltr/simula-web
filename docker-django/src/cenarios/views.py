@@ -24,8 +24,6 @@ def cenarios_view(request:HttpRequest):
         "cenario_form": cenario_form,
     }
 
-    
-    
     if request.method == "POST":
         model_type = request.POST.get("model_type")
         action = request.POST.get("action")
@@ -71,3 +69,53 @@ def removerCenario(request:HttpRequest,id):
     cenario = get_object_or_404(Cenario,id=id)
     cenario.delete()
     return redirect("cenarios:home")
+
+def editarInsumo(request:HttpRequest, id):
+    insumo = get_object_or_404(Insumo,id=id)
+    if request.method == "POST":
+        formInsumo = InsumoForm(request.POST,instance=insumo)
+        if formInsumo.is_valid():
+            formInsumo.save()
+            return redirect("cenarios:home")
+    formInsumo = InsumoForm(instance=insumo)
+    contexto = { 
+        'insumo_form':formInsumo,
+        "insumos": Insumo.objects.all(),
+        "cenarios": Cenario.objects.all(),
+        "produtos": Produto.objects.all(),
+        }
+    
+    return render(request, 'cenarios/cenarios.html',contexto)
+
+def editarProduto(request:HttpRequest, id):
+    produto = get_object_or_404(Produto, id=id)
+    if request.method == "POST":
+        formProduto = ProdutoForm(request.POST,instance=produto)
+        if formProduto.is_valid():
+            formProduto.save()
+            return redirect("cenarios:home")
+    formProduto = ProdutoForm(instance=produto)
+    contexto = {
+        'produto_form' : formProduto,
+        "insumos": Insumo.objects.all(),
+        "cenarios": Cenario.objects.all(),
+        "produtos": Produto.objects.all(),
+    }
+
+    return render(request, 'cenarios/cenarios.html',contexto)
+
+def editarCenario(request:HttpRequest, id):
+    cenario = get_object_or_404(Cenario,id=id)
+    if request.method == "POST":
+        formCenario = CenarioForm(request.POST, instance = cenario)
+        if formCenario.is_valid():
+            formCenario.save()
+            return redirect ("cenarios:home")
+    formCenario = CenarioForm(instance=cenario)
+    contexto = {
+        'cenario_form' : formCenario,
+        "insumos": Insumo.objects.all(),
+        "cenarios": Cenario.objects.all(),
+        "produtos": Produto.objects.all(),
+    }
+    return render(request, 'cenarios/cenarios.html',contexto)

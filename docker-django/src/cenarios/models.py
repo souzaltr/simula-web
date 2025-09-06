@@ -19,7 +19,7 @@ class Insumo(models.Model):
     quantidade = models.PositiveIntegerField(null=True,blank=True)
 
     def __str__(self):
-        return f"{self.nome} - Fornecedor {self.fornecedor}"
+        return f"{self.nome} - Fornecedor -> {self.fornecedor}"
     
 
 class Produto(models.Model):
