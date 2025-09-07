@@ -9,7 +9,7 @@ class Jogo(models.Model):
     nome = models.CharField(max_length=120, blank=False)
     cod = models.CharField(max_length=40, unique=True,editable=False)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ATIVO)
-    cenario = models.ForeignKey('cenarios.Cenario', editable=False, on_delete=models.PROTECT, related_name='jogos')
+    cenario = models.ForeignKey('cenarios.Cenario', editable=False, on_delete=models.CASCADE, related_name='jogos')
     periodo_anterior = models.PositiveIntegerField(default=0)
     periodo_atual = models.PositiveIntegerField(default=0)
     status_decisoes_disponiveis = models.BooleanField(default=False)

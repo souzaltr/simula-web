@@ -8,6 +8,7 @@ class InsumoForm(forms.ModelForm):
             'nome',
             'fornecedor'
         ]
+
         error_messages = {
             'nome': {
                 'required': "Informe o nome do Insumo!",
@@ -24,10 +25,12 @@ class ProdutoForm(forms.ModelForm):
             'nome', 
             'insumos',
         ]
+
         widgets = {
             'insumos': forms.CheckboxSelectMultiple(),
 
         }
+
         error_messages = {
             'nome': {
                 'required': "Informe o nome do Produto!",
@@ -44,9 +47,11 @@ class CenarioForm(forms.ModelForm):
             'nome',
             'produto',
         ]
+
         widgets = {
             'produto': forms.Select(),
         }
+        
         error_messages = {
             'nome':{
                 'required': "Informe o nome do Cenário!",
