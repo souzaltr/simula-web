@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Resultado{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3">Resultado</h1>
+    <p class="mb-4">Lote: <span class="badge text-bg-info">{{ lote_id }}</span></p>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Jogo</th>
+            <th>Código</th>
+            <th>Ação</th>
+            <th>Período Final</th>
+            <th>Logs</th>
+            <th>Status</th>
+            <th>Mensagem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in linhas %}
+          <tr>
+            <td>{{ l.jogo.name }}</td>
+            <td><span class="badge text-bg-secondary">{{ l.jogo.cod }}</span></td>
+            <td><code>{{ l.acao }}</code></td>
+            <td>{{ l.periodo_final }}</td>
+            <td>{{ l.logs_count }}</td>
+            <td>
+              {% if l.ok %}
+                <span class="badge text-bg-success">OK</span>
+              {% else %}
+                <span class="badge text-bg-danger">Erro</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ l.mensagem }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-muted">Nenhuma linha processada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" href="{% url 'simulacao:historico' %}">Ver histórico</a>
+      <a class="btn btn-secondary" href="{% url 'simulacao:simular' %}">Voltar</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
