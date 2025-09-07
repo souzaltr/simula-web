@@ -13,6 +13,13 @@ class SimularForm(forms.Form):
     )
     request_id = forms.CharField(required=False, widget=forms.HiddenInput)
 
+    # novo campo, para casar com o template
+    forcar_decisoes_automaticas = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"})
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["jogos"].queryset = Jogo.objects.filter(status=Jogo.ATIVO).order_by("name")
