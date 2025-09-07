@@ -6,6 +6,15 @@
     <title>Document</title>
 </head>
 <body>
+  {% if messages %}
+  <h2 class="messages">
+    {% for message in messages %}
+      <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+        {{ message }}
+      </p>
+    {% endfor %}
+    </h2>
+{% endif %}
     <h1>Lista Cenários: </h1> 
 
     <ul>
@@ -15,7 +24,7 @@
                 <form method="post" style="display:inline;">
                     {% csrf_token %}
                     <a href="{% url 'cenarios:editarCenario' cenario.id %}">Editar</a>
-                    <a href="{% url 'cenarios:removerCenario' cenario.id %}" onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{cenario.nome}}?');">Excluir</a>
+                    <a href="{% url 'cenarios:removerCenario' cenario.id %}" onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{cenario.nome}}?\nAtenção: Só é possível deletar um Cenário que está num Jogo Inativo!');">Excluir</a>
                 </form>
             </li>
         {% endfor %}
@@ -23,6 +32,7 @@
     <form action="" method="post">
         {% csrf_token%}
         {{cenario_form}}
+        
         <input type="hidden" name="model_type" value="cenario">
         <button type="submit" name="action" value="create">Salvar Cenário</button>
     </form>
@@ -62,7 +72,7 @@
             </form>
           </li>
         {% endfor %}
-      </ul>
+    </ul>
     <form  action="" method="post">
         {% csrf_token %}
         {{insumo_form}}
