@@ -19,14 +19,8 @@ from django.urls import path, include
 # from ..jogo_empresa import views
 
 urlpatterns = [
-<<<<<<< HEAD
-    path('myapp/', include('myapp.urls')),
-    path('cenarios/', include("cenarios.urls")),
-    path('simulacao/', include('simulacao.urls'))
-]
-=======
     path('jogo_empresa/', include('jogo_empresa.urls')),
     path('cenarios/', include("cenarios.urls")),
     path('simulacao/', include('simulacao.urls'))
 ]
->>>>>>> cd3c40b96894410f3a2267332bade09d845b7402
+
