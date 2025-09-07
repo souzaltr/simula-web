@@ -8,8 +8,8 @@ ACOES = {c for c, _ in SimulacaoPeriodo.ACAO_CHOICES}
 
 def gerar_lote_id():
     return uuid.uuid4().hex[:16]
-
-
+  
+  
 def _criar_execucao(jogo: Jogo, acao: str, lote_id: str, user):
     obj, created = SimulacaoExecucao.objects.get_or_create(
         jogo=jogo,
@@ -46,7 +46,7 @@ def _criar_periodo(execucao, jogo, acao, periodo_de, periodo_para):
         step_index=step,
     )
 
-
+  
 def _acao_R0D(jogo, execucao):
     p = jogo.periodo_atual
     for k in range(0, p):
@@ -57,7 +57,7 @@ def _acao_R0D(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-
+  
 def _acao_RND(jogo, execucao):
     p = jogo.periodo_atual
     for k in range(0, p + 1):
@@ -70,7 +70,7 @@ def _acao_RND(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-
+  
 def _acao_SPA(jogo, execucao):
     p = jogo.periodo_atual
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPA, p, p)
@@ -80,7 +80,7 @@ def _acao_SPA(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-
+  
 def _acao_SPN(jogo, execucao):
     p = jogo.periodo_atual
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPN, p, p + 1)
@@ -115,7 +115,7 @@ def _acao_LPD(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-
+  
 def _acao_CAD(jogo, execucao):
     p = jogo.periodo_atual
     novo = max(0, p - 1)
@@ -129,7 +129,7 @@ def _acao_CAD(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-
+  
 _FUNCS = {
     SimulacaoPeriodo.R0D: _acao_R0D,
     SimulacaoPeriodo.RND: _acao_RND,

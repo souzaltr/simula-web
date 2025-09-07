@@ -109,7 +109,7 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
     </div>
 
     <div style="margin-top:14px">
-      <a class="btn alt" href="{% url 'myapp:jogos_crud' %}">← Voltar aos Jogos</a>
+      <a class="btn alt" href="{% url 'jogo_empresa:jogos_crud' %}">← Voltar aos Jogos</a>
     </div>
   </aside>
 
@@ -135,7 +135,7 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
         {% endif %}
         <div>
           <button class="btn" type="submit">Salvar</button>
-          <a class="btn alt" href="{% url 'myapp:empresas_crud' jogo.id %}">Voltar</a>
+          <a class="btn alt" href="{% url 'jogo_empresa:empresas_crud' jogo.id %}">Voltar</a>
         </div>
       </form>
     {% else %}

@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('cenarios', '0001_initial'),
-        ('myapp', '0001_initial'),
+        ('jogo_empresa', '0001_initial'),
     ]
 
     operations = [

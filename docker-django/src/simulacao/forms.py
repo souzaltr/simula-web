@@ -26,7 +26,6 @@ class SimularForm(forms.Form):
     widget=forms.CheckboxSelectMultiple
 )
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["jogos"].queryset = (

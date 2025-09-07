@@ -1,13 +1,11 @@
-from django.views.generic import TemplateView
-from .tasks import show_hello_world
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import HttpResponse
 
 from django.core.exceptions import ValidationError
 
 from jogos.models import Jogo
-from myapp.models import Empresa
+from jogo_empresa.models import Empresa
 from cenarios.models import Cenario
 
 def pagina_home(request):
@@ -54,7 +52,7 @@ def jogos_crud(request):
             try:
                 jogo.save()
                 # após criar, volte respeitando q/sort atuais (se quiser preservar)
-                return redirect(reverse('myapp:jogos_crud'))
+                return redirect(reverse('jogo_empresa:jogos_crud'))
             except ValidationError as e:
                 filtro_campo = {campo: [msg for msg in msgs if msg != 'This field cannot be blank.']
                                 for campo, msgs in e.message_dict.items()}
@@ -86,7 +84,7 @@ def jogos_crud(request):
             try:
                 jogo.full_clean(exclude=['cenario'])
                 jogo.save()
-                return redirect(f"{reverse('myapp:jogos_crud')}?edit={jogo.pk}")
+                return redirect(f"{reverse('jogo_empresa:jogos_crud')}?edit={jogo.pk}")
             except ValidationError as e:
                 erros = {}
                 if 'nome' in e.message_dict:
@@ -104,7 +102,7 @@ def jogos_crud(request):
             pk = request.POST.get('id')
             jogo = get_object_or_404(Jogo, pk=pk)
             jogo.delete()
-            return redirect(reverse('myapp:jogos_crud'))
+            return redirect(reverse('jogo_empresa:jogos_crud'))
 
         elif action == 'alterar_status':
             selecionados = request.POST.getlist('jogos_selecionados')
@@ -113,9 +111,9 @@ def jogos_crud(request):
                 for jogo in Jogo.objects.filter(id__in=valid_ids):
                     jogo.status = Jogo.INATIVO if jogo.status == Jogo.ATIVO else Jogo.ATIVO
                     jogo.save()
-            return redirect(reverse('myapp:jogos_crud'))
+            return redirect(reverse('jogo_empresa:jogos_crud'))
 
-        return redirect(reverse('myapp:jogos_crud'))
+        return redirect(reverse('jogo_empresa:jogos_crud'))
 
     # GET
     edit_id = request.GET.get('edit')
@@ -144,7 +142,7 @@ def empresas_crud(request, jogo_id):
             try:
                 empresa.full_clean()
                 empresa.save()
-                return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+                return redirect(reverse('jogo_empresa:empresas_crud', args=[jogo.id]))
             except ValidationError as e:
                 erros = {}
                 if 'nome' in e.message_dict:
@@ -171,7 +169,7 @@ def empresas_crud(request, jogo_id):
             try:
                 empresa.full_clean()
                 empresa.save()
-                return redirect(f"{reverse('myapp:empresas_crud', args=[jogo.id])}?edit={empresa.id}")
+                return redirect(f"{reverse('jogo_empresa:empresas_crud', args=[jogo.id])}?edit={empresa.id}")
             except ValidationError as e:
                 erros = {}
                 if 'nome' in e.message_dict:
@@ -193,9 +191,9 @@ def empresas_crud(request, jogo_id):
             emp_id = request.POST.get('id')
             empresa = get_object_or_404(Empresa, pk=emp_id, jogo=jogo)
             empresa.delete()
-            return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+            return redirect(reverse('jogo_empresa:empresas_crud', args=[jogo.id]))
 
-        return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+        return redirect(reverse('jogo_empresa:empresas_crud', args=[jogo.id]))
 
     # GET normal
     edit_id = request.GET.get('edit')
