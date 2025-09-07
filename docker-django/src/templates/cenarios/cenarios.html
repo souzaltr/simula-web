@@ -20,10 +20,8 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 .nav-link:hover{text-decoration:underline}
 .nav-link.active{color:#fff;text-decoration:underline}
 
-/* força cor branca para esses dois */
 .nav-link.jogos,
 .nav-link.cenarios {color:#fff}
-
 .nav-link.usuarios,
 .nav-link.meucadastro {color:#cccaca}
 
@@ -51,13 +49,16 @@ h1{font-size:18px}
 label{display:block;font-size:14px;color:#111827;margin-bottom:4px}
 input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
 
-/* Botões (mantendo <a href> com cara de botão) */
-.btn{display:inline-block;background:var(--b);color:#fff !important;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+.btn{display:inline-block;background:var(--b);color:#fff !important;text-decoration:none;padding:10px 10px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
 .btn.alt{background:#0ea5e9}
 .btn.danger{background:var(--danger)}
+.btn{
+  margin-bottom:6px;
+}
 .actions a{display:inline-block;background:var(--b);color:#fff !important;text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:700}
 .actions a.alt{background:#0ea5e9}
 .actions a.danger{background:var(--danger)}
+
 
 /* Erros de campo (se usados) */
 .errors-card{background-color:#fee2e2;border-left:3px solid #ef4444;border-radius:8px;padding:6px 8px;margin:10px 0;color:#b91c1c;font-weight:300;box-shadow:0 0px 4px rgba(0,0,0,0.06)}
@@ -109,9 +110,9 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 
   
     <div class="list-head">
-      <a href="?{% if q_insumo %}q_insumo={{ q_insumo|urlencode }}&{% endif %}sort_insumo={% if sort_insumo == 'asc' %}desc{% else %}asc{% endif %}"
+      <a class ="btn alt" href="?{% if q_insumo %}q_insumo={{ q_insumo|urlencode }}&{% endif %}sort_insumo={% if sort_insumo == 'asc' %}desc{% else %}asc{% endif %}"
          title="Ordenar por nome">
-        Nome
+        Ordenar Nomes
         <span>{% if sort_insumo == 'asc' %}▲{% else %}▼{% endif %}</span>
       </a>
     </div>
@@ -158,9 +159,9 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 
    
     <div class="list-head">
-      <a href="?{% if q_produto %}q_produto={{ q_produto|urlencode }}&{% endif %}sort_produto={% if sort_produto == 'asc' %}desc{% else %}asc{% endif %}"
+      <a class="btn alt" href="?{% if q_produto %}q_produto={{ q_produto|urlencode }}&{% endif %}sort_produto={% if sort_produto == 'asc' %}desc{% else %}asc{% endif %}"
          title="Ordenar por nome">
-        Nome
+        Ordenar Nomes
         <span>{% if sort_produto == 'asc' %}▲{% else %}▼{% endif %}</span>
       </a>
     </div>
@@ -201,27 +202,6 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
   <!-- DIREITA — CENÁRIOS -->
   <section class="card">
 
-  <!-- DIREITA — CENÁRIOS -->
-  <section class="card">
-    <h1>Lista Cenários</h1>
-    <div class="list">
-      {% for cenario in cenarios %}
-        <div class="item">
-          <div style="flex:1">
-            <div style="font-weight:700">{{ cenario.nome }}</div>
-            <small>Produto: {{ cenario.produto.nome }}</small>
-          </div>
-          <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
-            <a href="{% url 'cenarios:editarCenario' cenario.id %}" class="alt">Editar</a>
-            <a href="{% url 'cenarios:removerCenario' cenario.id %}" class="danger"
-               onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{ cenario.nome }}?\nAtenção: Só é possível deletar um Cenário que está num Jogo Inativo!');">Excluir</a>
-          </div>
-        </div>
-      {% empty %}
-        <div class="item"><small>Nenhum cenário cadastrado.</small></div>
-      {% endfor %}
-    </div>
-
         <div class="toolbar">
       <form class="search" method="get">
         <span aria-hidden="true">🔎</span>
@@ -233,9 +213,9 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 
  
     <div class="list-head">
-      <a href="?{% if q_cenario %}q_cenario={{ q_cenario|urlencode }}&{% endif %}sort_cenario={% if sort_cenario == 'asc' %}desc{% else %}asc{% endif %}"
+      <a class="btn alt" href="?{% if q_cenario %}q_cenario={{ q_cenario|urlencode }}&{% endif %}sort_cenario={% if sort_cenario == 'asc' %}desc{% else %}asc{% endif %}"
          title="Ordenar por nome">
-        Nome
+        Ordenar Nomes
         <span>{% if sort_cenario == 'asc' %}▲{% else %}▼{% endif %}</span>
       </a>
     </div>
@@ -251,7 +231,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
           <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="{% url 'cenarios:editarCenario' cenario.id %}" class="alt">Editar</a>
             <a href="{% url 'cenarios:removerCenario' cenario.id %}" class="danger"
-               onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{ cenario.nome }}?\nAtenção: Só é possível deletar um Cenário que está num Jogo Inativo!');">Excluir</a>
+               onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{ cenario.nome }}?\nAtenção: Só é possível deletar um Cenário que está num Jogo Inativo!\nOs jogos também serão excluídos!');">Excluir</a>
           </div>
         </div>
       {% empty %}

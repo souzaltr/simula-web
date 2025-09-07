@@ -134,7 +134,7 @@ def removerProduto(request:HttpRequest,id):
     cenarioVinculado = (Cenario.objects.filter(produto=produto)).exists()
 
     if cenarioVinculado:
-        messages.error(request,"Não é possível exlcuir o prouto pois está associado a um cenário!")
+        messages.error(request,"Não é possível excluir o produto pois está associado a um cenário!")
     else:
         produto.delete()
         messages.success(request,"Produto Deletado com sucesso")
