@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nome', models.CharField(max_length=80)),
-                ('jogo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='empresas', to='myapp.jogo')),
+                ('jogo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='empresas', to='jogo_empresa.jogo')),
             ],
         ),
         migrations.CreateModel(
@@ -57,9 +57,9 @@ class Migration(migrations.Migration):
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
                 ('nome', models.CharField(max_length=100)),
                 ('email', models.EmailField(max_length=254, unique=True)),
-                ('empresa', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuario', to='myapp.empresa')),
+                ('empresa', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuario', to='jogo_empresa.empresa')),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('jogo', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuarios', to='myapp.jogo')),
+                ('jogo', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuarios', to='jogo_empresa.jogo')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
             ],
             options={

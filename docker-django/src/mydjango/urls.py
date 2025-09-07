@@ -23,10 +23,10 @@ from django.conf import settings
 from django.urls import path, include 
 from django.http import HttpResponse
 
-# from ..myapp import views
+# from ..jogo_empresa import views
 
 urlpatterns = [
-    path('myapp/', include('myapp.urls')),
+    path('jogo_empresa/', include('jogo_empresa.urls')),
     path('cenarios/', include("cenarios.urls")),
     path('simulacao/', include('simulacao.urls'))
 ]

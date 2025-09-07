@@ -1,7 +1,7 @@
 from django.test import TestCase 
 from django.urls import reverse
 from cenarios.models import Cenario, Produto, Insumo
-from myapp.models import Jogo
+from jogo_empresa.models import Jogo
 
 # Create your tests here.
 class JogoTestCase(TestCase):
@@ -13,12 +13,12 @@ class JogoTestCase(TestCase):
         cls.cenario=Cenario.objects.create(nome="Loja de móveis", produto=produto)
 
     def test_lista_vazia_jogos(self):
-        response= self.client.get(reverse("myapp:jogos_crud")) 
+        response= self.client.get(reverse("jogo_empresa:jogos_crud")) 
         self.assertEqual(response.status_code,200)
         self.assertContains(response,"Nenhum jogo cadastrado")
 
     def test_criar_jogo_valido(self):
-        response= self.client.post(reverse("myapp:jogos_crud"), {
+        response= self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action": "create",
             "nome": "Jogo de teste",
             "cenario_id": self.cenario.id
@@ -27,7 +27,7 @@ class JogoTestCase(TestCase):
         self.assertTrue(Jogo.objects.filter(nome="Jogo de teste", cenario=self.cenario).exists())      
 
     def test_jogo_nome_vazio(self):
-        response= self.client.post(reverse("myapp:jogos_crud"),{
+        response= self.client.post(reverse("jogo_empresa:jogos_crud"),{
             "action":"create",
             "nome":" ",
             "cenario_id": self.cenario.id
@@ -37,7 +37,7 @@ class JogoTestCase(TestCase):
         self.assertEqual(Jogo.objects.count(),0)
 
     def test_nao_criar_jogo_sem_cenario(self):
-        response = self.client.post(reverse("myapp:jogos_crud"), {
+        response = self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action": "create",
             "nome": "Jogo sem cenário",
              })
@@ -46,7 +46,7 @@ class JogoTestCase(TestCase):
     
     def test_editar_nome_do_jogo(self):
         jogo= Jogo.objects.create(nome="Jogo não editado",cenario=self.cenario)
-        response= self.client.post(reverse("myapp:jogos_crud"), {
+        response= self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action":"update",
             "id":jogo.id,
             "nome":"Jogo editado",
@@ -63,7 +63,7 @@ class JogoTestCase(TestCase):
         novo_cenario=Cenario.objects.create(nome="Borracharia", produto=novo_produto)
         jogo=Jogo.objects.create(nome="Jogo", cenario=self.cenario)
 
-        response = self.client.post(reverse("myapp:jogos_crud"), {
+        response = self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action": "update",
             "id": jogo.id,
             "nome": "Jogo",
@@ -76,7 +76,7 @@ class JogoTestCase(TestCase):
 
     def test_excluir_jogo(self):
         jogo=Jogo.objects.create(nome="ExcluirJogo", cenario=self.cenario)
-        response=self.client.post(reverse("myapp:jogos_crud"), {
+        response=self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action": "delete",
             "id": jogo.id
         })
@@ -87,7 +87,7 @@ class JogoTestCase(TestCase):
         jogo1 = Jogo.objects.create(nome="Ativo", cenario=self.cenario)
         jogo2 = Jogo.objects.create(nome="Inativo", cenario=self.cenario, status=Jogo.INATIVO)
 
-        response = self.client.post(reverse("myapp:jogos_crud"), {
+        response = self.client.post(reverse("jogo_empresa:jogos_crud"), {
             "action": "alterar_status",
             "jogos_selecionados": [jogo1.id, jogo2.id]
         })
