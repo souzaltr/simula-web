@@ -13,12 +13,13 @@ class SimulacaoView(View):
     template_name = "simulacao/simular.html"
 
     def _jogos_filtrados(self, request):
-        #Retorna (filtro_form, jogos_filtrados, jogos_ativos_para_simular).
-        #- No GET: lê filtros do querystring.
-        #- No POST: usa os hidden fields 'status' e 'q' do SimularForm.
-        #- jogos_filtrados: para exibir no resumo (pode ter ativos/inativos).
-        #- jogos_ativos_para_simular: SEMPRE apenas ativos, para o campo 'jogos' do form.#
-        
+        """
+        Retorna (filtro_form, jogos_filtrados, jogos_ativos_para_simular).
+        - No GET: lê filtros do querystring.
+        - No POST: usa os hidden fields 'status' e 'q' do SimularForm.
+        - jogos_filtrados: para exibir no resumo (pode ter ativos/inativos).
+        - jogos_ativos_para_simular: SEMPRE apenas ativos, para o campo 'jogos' do form.
+        """
         if request.method == "GET":
             filtro_form = FiltroJogosForm(request.GET or None)
         else:
@@ -61,6 +62,7 @@ class SimulacaoView(View):
         filtro_form, jogos_filtrados, jogos_ativos = self._jogos_filtrados(request)
         form = SimularForm(request.POST, jogos_qs=jogos_ativos)
 
+        # Se o form for inválido (ex.: nenhum jogo), volta com erros
         if not form.is_valid():
             return render(request, self.template_name, {
                 "form": form,
@@ -68,7 +70,29 @@ class SimulacaoView(View):
                 "jogos": jogos_filtrados,
             })
 
-        jogos_ids = list(form.cleaned_data["jogos"].values_list("id", flat=True))
+        # --- Guard extra: impedir processamento sem seleção
+        jogos_sel_qs = form.cleaned_data.get("jogos")
+        if not jogos_sel_qs or jogos_sel_qs.count() == 0:
+            form.add_error("jogos", "Selecione ao menos um jogo.")
+            return render(request, self.template_name, {
+                "form": form,
+                "filtro_form": filtro_form,
+                "jogos": jogos_filtrados,
+            })
+        # ---------------------------------------------------
+
+        # Por segurança, garanta que todos os IDs estão dentro do queryset de ATIVOS
+        ids_post = set(jogos_sel_qs.values_list("id", flat=True))
+        ids_ativos = set(jogos_ativos.values_list("id", flat=True))
+        if not ids_post.issubset(ids_ativos):
+            form.add_error("jogos", "A seleção contém itens inválidos (apenas jogos ATIVOS podem ser simulados).")
+            return render(request, self.template_name, {
+                "form": form,
+                "filtro_form": filtro_form,
+                "jogos": jogos_filtrados,
+            })
+
+        jogos_ids = list(ids_post)
         acao = form.cleaned_data["acao"]
         lote_id = form.cleaned_data.get("request_id") or gerar_lote_id()
 

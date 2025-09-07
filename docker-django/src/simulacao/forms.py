@@ -1,8 +1,8 @@
-# simulacao/forms.py
 from django import forms
 from django.db.models import Q
 from jogos.models import Jogo
 from .models import SimulacaoPeriodo
+
 
 class FiltroJogosForm(forms.Form):
     STATUS_TODOS = "todos"
@@ -57,31 +57,48 @@ class SimularForm(forms.Form):
         widget=forms.HiddenInput(),
         required=False
     )
-    # Esses dois campos só servem para “persistir” os filtros atuais no POST
+
+    # Esses dois campos persistem os filtros atuais no POST
     status = forms.CharField(widget=forms.HiddenInput(), required=False)
     q = forms.CharField(widget=forms.HiddenInput(), required=False)
 
-    # O campo de seleção múltipla de jogos (como checkboxes)
+    # Seleção múltipla (checkboxes) — obrigatório
     jogos = forms.ModelMultipleChoiceField(
         label="Selecione os jogos",
         queryset=Jogo.objects.none(),
-        widget=forms.CheckboxSelectMultiple
+        required=True,
+        widget=forms.CheckboxSelectMultiple()  # <- com parênteses
     )
 
     def __init__(self, *args, **kwargs):
-        # Permite chegar um queryset filtrado de jogos pelo view
+        # queryset filtrado vindo da view
         jogos_qs = kwargs.pop("jogos_qs", None)
         super().__init__(*args, **kwargs)
-        if jogos_qs is not None:
-            self.fields["jogos"].queryset = jogos_qs
-        else:
-            self.fields["jogos"].queryset = (
-                Jogo.objects.filter(status=getattr(Jogo, "ATIVO", "A")).order_by("nome")
+
+        if jogos_qs is None:
+            jogos_qs = Jogo.objects.filter(
+                status=getattr(Jogo, "ATIVO", "A")
+            ).order_by("nome")
+
+        self.fields["jogos"].queryset = jogos_qs
+
+    def clean_jogos(self):
+        """Garante seleção e que todos os jogos sejam ATIVOS."""
+        selecionados = self.cleaned_data.get("jogos")
+
+        # Pelo menos um jogo
+        if not selecionados or selecionados.count() == 0:
+            raise forms.ValidationError("Selecione ao menos um jogo.")
+
+        # Apenas ATIVOS podem ser simulados
+        ativo_code = getattr(Jogo, "ATIVO", "A")
+        inativos = [j for j in selecionados if getattr(j, "status", None) != ativo_code]
+        if inativos:
+            nomes = ", ".join(j.nome for j in inativos[:3])
+            if len(inativos) > 3:
+                nomes += "…"
+            raise forms.ValidationError(
+                f"Apenas jogos ATIVOS podem ser simulados. Remova os inativos: {nomes}."
             )
 
-    def clean(self):
-        cleaned = super().clean()
-        jogos = cleaned.get("jogos")
-        if not jogos or jogos.count() == 0:
-            self.add_error("jogos", "Selecione ao menos um jogo.")
-        return cleaned
+        return selecionados
