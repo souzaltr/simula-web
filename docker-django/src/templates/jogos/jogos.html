@@ -13,16 +13,19 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 
-/* TOPO (links de texto) */
+/* TOP BAR — com navegação */
 .top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
-.top .wrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.brand{font-weight:800;color:#fff;text-decoration:none}
-.crumbs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.crumbs .sep{opacity:.7}
-.navlink{color:#fff;text-decoration:none;font-weight:700;opacity:.9}
-.navlink:hover{opacity:1;text-decoration:underline}
-.navlink.disabled{opacity:.55;pointer-events:none;cursor:not-allowed}
-.navlink.active{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto}
+.nav-link{color:#cfe8ff;text-decoration:none;font-weight:700}
+.nav-link:hover{text-decoration:underline}
+.nav-link.active{color:#fff;text-decoration:underline}
+
+/* força cor branca para esses dois */
+.nav-link.jogos,
+.nav-link.cenarios {color:#fff}
+
+.nav-link.usuarios,
+.nav-link.meucadastro {color:#cccaca}
 
 /* layout */
 .container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:420px 1fr}
@@ -74,20 +77,18 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 </head>
 <body>
 
-<!-- TOPO: links de texto -->
+<!-- TOP BAR com links -->
 <div class="top">
-  <div class="wrap">
-    <a class="brand" href="{% url 'jogo_empresa:jogos_crud' %}">SimulaWEB</a>
-    <nav class="crumbs">
-      <span class="sep">•</span>
-      <a class="navlink active" href="{% url 'jogo_empresa:jogos_crud' %}">Jogos</a>
-      <span class="sep">•</span>
-      <a class="navlink disabled" href="#" title="Em breve">Usuários</a>
-      <span class="sep">•</span>
-      <a class="navlink" href="/cenarios/">Cenários</a>
-      <span class="sep">•</span>
-      <a class="navlink disabled" href="#" title="Em breve">Meu cadastro</a>
-    </nav>
+  <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
+    <a href="" style="color:#fff;text-decoration:none;font-weight:800">SimulaWEB</a>
+    <span aria-hidden="true">•</span>
+    <a href="/jogo_empresa/jogos" class="nav-link jogos">Jogos</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link usuarios" >Usuários</a>
+    <span aria-hidden="true">•</span>
+    <a href="{% url 'cenarios:home' %}" class="nav-link cenarios">Cenários</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link meucadastro">Meu cadastro</a>
   </div>
 </div>
 
@@ -99,7 +100,9 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
       {% csrf_token %}
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button type="button" class="btn alt" id="toggleBtnTop" style="display:none">Ativar/Inativar</button>
-        <button type="button" class="btn" id="simulateBtn" onclick="window.location.href='/simulacao/simular'">Simular</button>
+        <button type="button" class="btn" id="simulateBtn" onclick="window.location.href='/simulacao/simular/'">
+    Simular
+</button>
       </div>
     </form>
 

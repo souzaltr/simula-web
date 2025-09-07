@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Histórico{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3">Histórico de simulações</h1>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-2 mb-3">
+      <div class="col-md-3">
+        <label class="form-label">Ação</label>
+        <select name="acao" class="form-select">
+          <option value="">Todas</option>
+          {% for code, label in SimulacaoPeriodo.ACAO_CHOICES %}
+            <option value="{{ code }}" {% if acao == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Jogo</label>
+        <select name="jogo" class="form-select">
+          <option value="">Todos</option>
+          {% for j in jogos %}
+            <option value="{{ j.id }}" {% if j.id|stringformat:"s" == jogo_sel %}selected{% endif %}>
+              {{ j.nome }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Lote</label>
+        <input type="text" name="lote" value="{{ lote }}" class="form-control" placeholder="ID do lote">
+      </div>
+
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+        <a href="{% url 'simulacao:historico' %}" class="btn btn-outline-secondary">Limpar</a>
+      </div>
+    </form>
+
+    <!-- Tabela -->
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Jogo</th>
+            <th>Ação</th>
+            <th>Período de → para</th>
+            <th>Lote</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for p in page_obj %}
+          <tr>
+            <td>{{ p.requested_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ p.jogo.nome }}</td>
+            <td>{{ p.get_acao_display }}</td>
+            <td>{{ p.periodo_de }} → {{ p.periodo_para }}</td>
+            <td>{{ p.execucao.lote_id }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-muted">Sem registros.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mt-2">
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&lote={{ lote }}">«</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">«</span></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">
+              página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+          </li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&lote={{ lote }}">»</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">»</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
