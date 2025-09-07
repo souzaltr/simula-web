@@ -25,13 +25,8 @@ from django.http import HttpResponse
 
 # from ..myapp import views
 
-
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('myapp/', include('myapp.urls')),
-    path('cenarios/', include('cenarios.urls')),
-    path('simulacao/', include('simulacao.urls')),
+    path('cenarios/', include("cenarios.urls")),
+    path('simulacao/', include('simulacao.urls'))
 ]
-
-# urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

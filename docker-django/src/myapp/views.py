@@ -1,20 +1,213 @@
-from django import get_version
 from django.views.generic import TemplateView
 from .tasks import show_hello_world
-from .models import DemoModel
-
-from django.shortcuts import render 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponse
 
+from django.core.exceptions import ValidationError
 
-# Create your views here.
+from jogos.models import Jogo
+from myapp.models import Empresa
+from cenarios.models import Cenario
 
 def pagina_home(request):
-    contexto = { 
-        "nome" : "Alessandro"
-    }
+    contexto = {"nome": "Alessandro"}
     return render(request, 'home.html', contexto)
 
+#filtragem e ordenação jogo
+def build_jogos_queryset(request):
+    q = (request.GET.get("q") or "").strip() #lê o termo digitado e tira espaços (filtrar da lupa)
+    sort = (request.GET.get("sort") or "asc").lower()   # 'asc' ou 'desc' -> diração da ordenação
 
-    
+    qs = Jogo.objects #select_related('cenario') -> opcional
+    if q:
+        qs = qs.filter(nome__icontains=q) # traz só os jogos cujo nome contém o termo 'q'
+
+    order = "nome" if sort == "asc" else "-nome" #obs.: esse '-nome' significa descendente no Django
+    return qs.order_by(order), q, sort
+
+#filtragem e ordenação empresa
+def build_empresas_queryset(request, jogo):
+    q = (request.GET.get("q") or "").strip()          # termo da busca
+    sort = (request.GET.get("sort") or "asc").lower() # 'asc' ou 'desc'
+
+    qs = Empresa.objects.filter(jogo=jogo)
+    if q:
+        qs = qs.filter(nome__icontains=q)
+
+    order = "nome" if sort == "asc" else "-nome"
+    return qs.order_by(order), q, sort
+
+
+def jogos_crud(request):
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        if action == 'create':
+            nome = (request.POST.get('nome') or '').strip()
+            cenario_id = request.POST.get('cenario_id')
+
+            jogo = Jogo(nome=nome)
+            if cenario_id:
+                jogo.cenario = get_object_or_404(Cenario, pk=cenario_id)
+
+            try:
+                jogo.save()
+                # após criar, volte respeitando q/sort atuais (se quiser preservar)
+                return redirect(reverse('myapp:jogos_crud'))
+            except ValidationError as e:
+                filtro_campo = {campo: [msg for msg in msgs if msg != 'This field cannot be blank.']
+                                for campo, msgs in e.message_dict.items()}
+
+                cenario_nome = ''
+                if cenario_id:
+                    try:
+                        cenario_obj = Cenario.objects.get(pk=cenario_id)
+                        cenario_nome = cenario_obj.nome
+                    except Cenario.DoesNotExist:
+                        pass
+
+                jogos, q, sort = build_jogos_queryset(request)
+                cenarios = Cenario.objects.select_related('produto').order_by('nome')
+                return render(request, 'jogos/jogos.html', {
+                    'jogos': jogos,
+                    'cenarios': cenarios,
+                    'errors': filtro_campo,
+                    'form_data': {'nome': nome, 'cenario_id': cenario_id, 'cenario_nome': cenario_nome},
+                    'q': q, 'sort': sort,
+                })
+
+        elif action == 'update':
+            pk = request.POST.get('id')
+            jogo = get_object_or_404(Jogo, pk=pk)
+            nome = (request.POST.get('nome') or jogo.nome).strip()
+            jogo.nome = nome
+
+            try:
+                jogo.full_clean(exclude=['cenario'])
+                jogo.save()
+                return redirect(f"{reverse('myapp:jogos_crud')}?edit={jogo.pk}")
+            except ValidationError as e:
+                erros = {}
+                if 'nome' in e.message_dict:
+                    erros['nome'] = [msg for msg in e.message_dict['nome'] if msg != 'This field cannot be blank.']
+
+                jogos, q, sort = build_jogos_queryset(request)
+                return render(request, 'jogos/jogos.html', {
+                    'jogos': jogos,
+                    'jogo_edit': jogo,
+                    'errors': erros,
+                    'q': q, 'sort': sort,
+                })
+
+        elif action == 'delete':
+            pk = request.POST.get('id')
+            jogo = get_object_or_404(Jogo, pk=pk)
+            jogo.delete()
+            return redirect(reverse('myapp:jogos_crud'))
+
+        elif action == 'alterar_status':
+            selecionados = request.POST.getlist('jogos_selecionados')
+            valid_ids = [int(x) for x in selecionados if str(x).isdigit()]
+            if valid_ids:
+                for jogo in Jogo.objects.filter(id__in=valid_ids):
+                    jogo.status = Jogo.INATIVO if jogo.status == Jogo.ATIVO else Jogo.ATIVO
+                    jogo.save()
+            return redirect(reverse('myapp:jogos_crud'))
+
+        return redirect(reverse('myapp:jogos_crud'))
+
+    # GET
+    edit_id = request.GET.get('edit')
+    jogo_edit = Jogo.objects.filter(pk=edit_id).select_related('cenario').first() if edit_id else None
+
+    jogos, q, sort = build_jogos_queryset(request)
+    cenarios = Cenario.objects.select_related('produto').order_by('nome')
+
+    return render(request, 'jogos/jogos.html', {
+        'jogos': jogos,
+        'jogo_edit': jogo_edit,
+        'cenarios': cenarios,
+        'q': q, 'sort': sort,   # <- manda pra template
+    })
+
+
+def empresas_crud(request, jogo_id):
+    jogo = get_object_or_404(Jogo, pk=jogo_id)
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        if action == 'create':
+            nome = (request.POST.get('nome') or '').strip()
+            empresa = Empresa(nome=nome, jogo=jogo)
+            try:
+                empresa.full_clean()
+                empresa.save()
+                return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+            except ValidationError as e:
+                erros = {}
+                if 'nome' in e.message_dict:
+                    msgs = [msg for msg in e.message_dict['nome'] if msg != 'This field cannot be blank.']
+                    erros['nome'] = msgs
+
+                # <<< usa o helper para manter q/sort no reload
+                empresas, q, sort = build_empresas_queryset(request, jogo)
+                return render(request, 'empresas/empresas.html', {
+                    'jogo': jogo,
+                    'empresas': empresas,
+                    'empresa_edit': None,
+                    'errors': erros,
+                    'form_data': {'nome': nome},
+                    'q': q, 'sort': sort,
+                })
+
+        elif action == 'update':
+            emp_id = request.POST.get('id')
+            empresa = get_object_or_404(Empresa, pk=emp_id, jogo=jogo)
+            nome = (request.POST.get('nome') or '').strip()
+            empresa.nome = nome
+
+            try:
+                empresa.full_clean()
+                empresa.save()
+                return redirect(f"{reverse('myapp:empresas_crud', args=[jogo.id])}?edit={empresa.id}")
+            except ValidationError as e:
+                erros = {}
+                if 'nome' in e.message_dict:
+                    msgs = [msg for msg in e.message_dict['nome'] if msg != 'This field cannot be blank.']
+                    erros['nome'] = msgs
+
+                # <<< usa o helper para manter q/sort no reload
+                empresas, q, sort = build_empresas_queryset(request, jogo)
+                return render(request, 'empresas/empresas.html', {
+                    'jogo': jogo,
+                    'empresas': empresas,
+                    'empresa_edit': empresa,
+                    'errors': erros,
+                    'form_data': {'nome': nome},
+                    'q': q, 'sort': sort,
+                })
+
+        elif action == 'delete':
+            emp_id = request.POST.get('id')
+            empresa = get_object_or_404(Empresa, pk=emp_id, jogo=jogo)
+            empresa.delete()
+            return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+
+        return redirect(reverse('myapp:empresas_crud', args=[jogo.id]))
+
+    # GET normal
+    edit_id = request.GET.get('edit')
+    empresa_edit = Empresa.objects.filter(pk=edit_id, jogo=jogo).first() if edit_id else None
+
+    # <<< usa o helper também no GET
+    empresas, q, sort = build_empresas_queryset(request, jogo)
+    return render(request, 'empresas/empresas.html', {
+        'jogo': jogo,
+        'empresas': empresas,
+        'empresa_edit': empresa_edit,
+        'q': q, 'sort': sort,
+    })
+
 

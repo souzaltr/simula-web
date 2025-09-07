@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'simulacao',
 ]
 
-AUTH_USER_MODEL = 'myapp.Usuario'
 
 
 MIDDLEWARE = [

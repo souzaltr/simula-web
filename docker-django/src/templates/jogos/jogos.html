@@ -1,0 +1,341 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogos • CRUD Único</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--b:#0e5f9e;--c:#1b76bd;--bg:#f3f6fb;--card:#fff;--muted:#6b7280;--danger:#ef4444;--shadow:0 10px 20px rgba(12,76,128,.08);--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
+.top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
+.wrap{max-width:1100px;margin:0 auto}
+/* sidebar larga */
+.container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:420px 1fr}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+h2{margin:0 0 10px}
+.btn{display:inline-block;background:var(--b);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+.btn.alt{background:#0ea5e9}
+.btn.danger{background:var(--danger)}
+.list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow:auto}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.item a{color:#0f172a;text-decoration:none;font-weight:700}
+.pill{padding:6px 10px;border-radius:999px;background:#e8f2fc;color:#0c4c80;font-weight:700;font-size:12px;display:inline-block}
+.row{display:grid;gap:10px;grid-template-columns:1fr}
+label{display:block;font-size:14px;color:#111827;margin-bottom:4px}
+input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.badge{display:inline-block;background:#ecfeff;color:#075985;padding:8px 10px;border-radius:10px;margin-bottom:10px}
+.subnav{margin-top:8px;font-size:13px}
+.subnav a{color:#0e5f9e;text-decoration:none;font-weight:700}
+.subnav a:hover{text-decoration:underline}
+/* garante texto branco no botão dentro da subnav */
+.subnav .btn{color:#fff !important}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;box-shadow:var(--shadow);max-width:560px;width:100%;padding:16px}
+.modal h3{margin:0 0 10px}
+.modal .list-cenarios{max-height:50vh;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;padding:8px}
+.cenario-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #eef2f7}
+.cenario-item:last-child{border-bottom:none}
+.badge-pill{display:inline-block;background:#eef6ff;color:#0b5ea8;padding:6px 10px;border-radius:999px;font-size:12px}
+.code-chip{background:#f1f5f9;border-radius:999px;padding:4px 8px;font-size:12px;color:#475569}
+.break{word-break:break-word;overflow-wrap:anywhere}
+/* cabeçalho “Jogo ▲/▼” */
+.list-head{display:flex;align-items:center;justify-content:flex-start;gap:8px;background:#eef6ff;color:#0b5ea8;
+  border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;margin:4px 0 8px;font-weight:700}
+.list-head a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+/* barra de busca */
+.toolbar{display:flex;gap:8px;align-items:center;margin:0 0 10px}
+.search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 10px;box-shadow:0 2px 6px rgba(12,76,128,.06)}
+.search input{border:none;outline:none;font:inherit;width:220px}
+@media(max-width:980px){.container{grid-template-columns:1fr}}
+/* erros */
+.errors-card {background-color:#fee2e2;border-left:3px solid #ef4444;border-radius:8px;padding:6px 8px;margin-bottom:10px;color:#b91c1c;font-weight:300;box-shadow:0 0px 4px rgba(0,0,0,0.1)}
+.errors-card ul{margin:0;padding-left:18px}
+.errors-card li{margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><strong>Simulare</strong> • Jogos</div></div>
+
+<div class="container">
+  <aside class="card">
+    <h2>Jogos</h2>
+    
+    <form id="batchForm" method="post" style="margin-bottom: 16px;">
+      {% csrf_token %}
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn alt" id="toggleBtnTop" style="display:none">Ativar/Inativar</button>
+        <button type="button" class="btn" id="simulateBtn" onclick="window.location.href='/simulacao/simular'">Simular</button>
+      </div>
+    </form>
+
+    <!-- Barra de busca (lupinha) -->
+    <div class="toolbar">
+      <form class="search" method="get">
+        <span aria-hidden="true">🔎</span>
+        <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Buscar jogo por nome...">
+        <input type="hidden" name="sort" value="{{ sort|default:'asc' }}">
+        <button class="btn alt" type="submit">Filtrar</button>
+      </form>
+
+    </div>
+
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+      <span id="selectedCountList" style="flex:1;font-weight:600;color:var(--muted)"></span>
+    </div>
+
+    <div style="margin-bottom:8px;display:flex;justify-content:left">
+      <button type="button" class="btn alt" id="selectAllBtn" data-mode="select">Selecionar todos os jogos</button>
+    </div>
+
+    <!-- Cabeçalho de ordenação “Jogo ▲/▼” -->
+    <div class="list-head">
+      <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}sort={% if sort == 'asc' %}desc{% else %}asc{% endif %}" title="Ordenar por nome">
+        Jogo
+        <span>{% if sort == 'asc' %}▲{% else %}▼{% endif %}</span>
+      </a>
+    </div>
+
+    <div class="list" id="jogosList">
+      {% for j in jogos %}
+        <div class="item" style="flex-direction:column;align-items:flex-start">
+          <div style="display:flex;align-items:flex-start;gap:8px;width:100%;">
+            <input class="jogo-checkbox" type="checkbox" name="jogos_selecionados" value="{{ j.id }}" id="jogocb-{{ j.id }}" style="margin-top:6px">
+            <span class="break" style="font-weight:700;flex:1">{{ j.nome }}</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <span class="code-chip">Cód: {{ j.cod }}</span>
+            <span class="badge-pill">{% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}</span>
+          </div>
+          <div style="font-size:13px;color:#64748b;margin-top:4px">
+            Cenário: {{ j.cenario.nome }}
+          </div>
+          <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:8px">
+            <a href="{% url 'myapp:empresas_crud' j.id %}">Empresas</a>
+            <a href="#" title="Em breve">Usuários</a>
+            <a class="btn" href="?edit={{ j.id }}">Editar</a>
+            <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="id" value="{{ j.id }}">
+              <button class="btn danger" type="submit">Apagar</button>
+            </form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="item"><span class="muted">Nenhum jogo cadastrado.</span></div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <main class="card">
+    {% if jogo_edit %}
+      <div class="badge">Editar: {{ jogo_edit.nome }}</div>
+      <form method="post" style="display:grid;gap:14px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="id" value="{{ jogo_edit.id }}">
+        <input type="hidden" id="cenario_id" name="cenario_id" value="{{ jogo_edit.cenario.id }}">
+        <div class="row">
+          <div>
+            <label>Nome do jogo</label>
+            <input type="text" name="nome" value="{{ jogo_edit.nome }}">
+          </div>
+          {% if errors.nome %}
+          <div class="errors-card">
+            <ul>
+              {% for msg in errors.nome %}
+                <li>{{ msg }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+        <div>
+          <span class="badge-pill" id="cenario_label">Cenário: {{ jogo_edit.cenario.nome }}</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn" type="submit">Salvar</button>
+          <a class="btn alt" href="{% url 'myapp:jogos_crud' %}">Voltar</a>
+        </div>
+      </form>
+    {% else %}
+      <div class="badge">Criar novo jogo</div>
+      <form method="post" style="display:grid;gap:14px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <input type="hidden" id="cenario_id" name="cenario_id" value="{{ form_data.cenario_id|default:'' }}">
+        <div class="row">
+          <div>
+            <label>Nome do jogo</label>
+            <input type="text" name="nome" value="{{ form_data.nome|default:'' }}">
+          </div>
+          {% if errors %}
+          <div class="errors-card">
+            <ul>
+              {% for field, msgs in errors.items %}
+                {% for msg in msgs %}
+                  <li>{{ msg }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+        <div>
+          <span class="badge-pill" id="cenario_label">Cenário selecionado: {{ form_data.cenario_nome|default:'nenhum' }}</span>
+          <button class="btn alt" type="button" id="openCenarioBtn">Selecionar Cenário</button>
+        </div>
+        <div>
+          <button class="btn" type="submit">Criar</button>
+        </div>
+      </form>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Modal de cenários -->
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ttl">
+    <h3 id="ttl">Selecionar Cenário</h3>
+    <div class="list-cenarios">
+      {% for c in cenarios %}
+        <div class="cenario-item">
+          <div><strong>{{ c.nome }}</strong></div>
+          <button class="btn alt" type="button" data-pick="{{ c.id }}" data-nome="{{ c.nome|escapejs }}">Selecionar</button>
+        </div>
+      {% empty %}
+        <div class="cenario-item">Nenhum cenário cadastrado.</div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn" type="button" id="closeModalBtn">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCookie(name){
+  const value=`; ${document.cookie}`;
+  const parts=value.split(`; ${name}=`);
+  if(parts.length===2) return parts.pop().split(';').shift();
+  return null;
+}
+
+(function(){
+  const modalBackdrop=document.getElementById('modalBackdrop');
+  const inpCenario=document.getElementById('cenario_id');
+  const lblCenario=document.getElementById('cenario_label');
+
+  const btnToggleTop=document.getElementById('toggleBtnTop');
+  const spanCountList=document.getElementById('selectedCountList');
+  const selectAllBtn=document.getElementById('selectAllBtn');
+
+  function setAll(checked){
+    document.querySelectorAll('.jogo-checkbox').forEach(cb=>cb.checked=checked);
+  }
+
+  function updateSelection(){
+    const checkboxes=document.querySelectorAll('.jogo-checkbox');
+    const checkedCount=document.querySelectorAll('.jogo-checkbox:checked').length;
+    const has=checkedCount>0;
+
+    if(btnToggleTop) btnToggleTop.style.display=has?'inline-block':'none';
+
+    const txt=has ? (checkedCount+' selecionado'+(checkedCount>1?'s':'')) : '';
+    if(spanCountList) spanCountList.textContent=txt;
+
+    const total=checkboxes.length;
+    const allMarked=(total>0 && checkedCount===total);
+    if(selectAllBtn){
+      selectAllBtn.dataset.mode = allMarked ? 'deselect' : 'select';
+      selectAllBtn.textContent = allMarked ? 'Desselecionar todos os jogos' : 'Selecionar todos os jogos';
+    }
+  }
+
+  function onSelectAllClick(){
+    const mode = selectAllBtn.dataset.mode || 'select';
+    const shouldSelect = (mode==='select');
+    setAll(shouldSelect);
+    updateSelection();
+  }
+
+  function bindCheckboxes(){
+    document.querySelectorAll('.jogo-checkbox').forEach(cb=>{
+      cb.removeEventListener('change', updateSelection);
+      cb.addEventListener('change', updateSelection);
+    });
+    updateSelection();
+  }
+
+  function postToggleStatus(){
+    const checkedEls=Array.from(document.querySelectorAll('.jogo-checkbox:checked'));
+    if(checkedEls.length===0) return;
+    if(!confirm('Deseja alternar o status dos jogos selecionados?')) return;
+
+    const form=document.createElement('form');
+    form.method='POST'; form.action='';
+    const csrftoken=getCookie('csrftoken');
+    if(csrftoken){
+      const csrfInput=document.createElement('input');
+      csrfInput.type='hidden'; csrfInput.name='csrfmiddlewaretoken'; csrfInput.value=csrftoken;
+      form.appendChild(csrfInput);
+    }
+    const actionInput=document.createElement('input');
+    actionInput.type='hidden'; actionInput.name='action'; actionInput.value='alterar_status';
+    form.appendChild(actionInput);
+
+    checkedEls.forEach(el=>{
+      const inp=document.createElement('input');
+      inp.type='hidden'; inp.name='jogos_selecionados'; inp.value=el.value;
+      form.appendChild(inp);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function openModal(){
+    if(!modalBackdrop) return;
+    modalBackdrop.style.display='flex';
+    modalBackdrop.setAttribute('aria-hidden','false');
+  }
+  function closeModal(){
+    if(!modalBackdrop) return;
+    modalBackdrop.style.display='none';
+    modalBackdrop.setAttribute('aria-hidden','true');
+  }
+  function pickCenario(id, nome){
+    if(inpCenario) inpCenario.value=id;
+    if(lblCenario) lblCenario.textContent='Cenário selecionado: '+nome;
+    closeModal();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    bindCheckboxes();
+    if(btnToggleTop) btnToggleTop.addEventListener('click', postToggleStatus);
+    if(selectAllBtn) selectAllBtn.addEventListener('click', onSelectAllClick);
+
+    const openCenarioBtn=document.getElementById('openCenarioBtn');
+    const closeModalBtn=document.getElementById('closeModalBtn');
+    if(openCenarioBtn) openCenarioBtn.addEventListener('click', openModal);
+    if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+
+    if(modalBackdrop){
+      modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+      modalBackdrop.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button[data-pick]');
+        if(!btn) return;
+        pickCenario(btn.getAttribute('data-pick'), btn.getAttribute('data-nome'));
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>

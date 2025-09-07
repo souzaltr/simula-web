@@ -59,3 +59,11 @@ services:
 networks:
   djangonetwork:
     driver: bridge
+
+
+
+
+
+
+
+    
