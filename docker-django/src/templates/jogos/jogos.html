@@ -13,15 +13,19 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 
-/* TOPO */
+/* TOP BAR — com navegação */
 .top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
-.top .wrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:14px}
-.brand{font-weight:800}
-.topnav{margin-left:auto;display:flex;gap:8px}
-.btn-top{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;text-decoration:none;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.18);color:#fff;font-weight:700}
-.btn-top:hover{background:rgba(255,255,255,.26)}
-.btn-top.active{background:rgba(255,255,255,.38)}
-.btn-top.disabled{opacity:.6;pointer-events:none;cursor:not-allowed}
+.wrap{max-width:1100px;margin:0 auto}
+.nav-link{color:#cfe8ff;text-decoration:none;font-weight:700}
+.nav-link:hover{text-decoration:underline}
+.nav-link.active{color:#fff;text-decoration:underline}
+
+/* força cor branca para esses dois */
+.nav-link.jogos,
+.nav-link.cenarios {color:#fff}
+
+.nav-link.usuarios,
+.nav-link.meucadastro {color:#cccaca}
 
 /* layout */
 .container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:420px 1fr}
@@ -42,6 +46,8 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 .subnav a{color:#0e5f9e;text-decoration:none;font-weight:700}
 .subnav a:hover{text-decoration:underline}
 .subnav .btn{color:#fff !important}
+
+/* modal */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px}
 .modal{background:#fff;border-radius:16px;box-shadow:var(--shadow);max-width:560px;width:100%;padding:16px}
 .modal h3{margin:0 0 10px}
@@ -51,14 +57,18 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 .badge-pill{display:inline-block;background:#eef6ff;color:#0b5ea8;padding:6px 10px;border-radius:999px;font-size:12px}
 .code-chip{background:#f1f5f9;border-radius:999px;padding:4px 8px;font-size:12px;color:#475569}
 .break{word-break:break-word;overflow-wrap:anywhere}
+
 /* cabeçalho “Jogo ▲/▼” */
 .list-head{display:flex;align-items:center;justify-content:flex-start;gap:8px;background:#eef6ff;color:#0b5ea8;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;margin:4px 0 8px;font-weight:700}
 .list-head a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+
 /* barra de busca */
 .toolbar{display:flex;gap:8px;align-items:center;margin:0 0 10px}
 .search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 10px;box-shadow:0 2px 6px rgba(12,76,128,.06)}
 .search input{border:none;outline:none;font:inherit;width:220px}
+
 @media(max-width:980px){.container{grid-template-columns:1fr}}
+
 /* erros */
 .errors-card {background-color:#fee2e2;border-left:3px solid #ef4444;border-radius:8px;padding:6px 8px;margin-bottom:10px;color:#b91c1c;font-weight:300;box-shadow:0 0px 4px rgba(0,0,0,0.1)}
 .errors-card ul{margin:0;padding-left:18px}
@@ -67,18 +77,18 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 </head>
 <body>
 
-<!-- TOPO COM NAVEGAÇÃO -->
+<!-- TOP BAR com links -->
 <div class="top">
-  <div class="wrap">
-    <span class="brand">SimulaWEB</span>
-    <span>• Jogos</span>
-    <nav class="topnav">
-      <!-- Ajuste o href de 'Jogos' se o namespace/rota diferir -->
-      <a class="btn-top active" href="{% url 'jogo_empresa:jogos_crud' %}">Jogos</a>
-      <a class="btn-top disabled" href="#" onclick="return false;">Usuários</a>
-      <!-- Cenários: usando o prefixo incluído em urls.py -->
-      <a class="btn-top" href="/cenarios/">Cenários</a>
-    </nav>
+  <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
+    <a href="" style="color:#fff;text-decoration:none;font-weight:800">SimulaWEB</a>
+    <span aria-hidden="true">•</span>
+    <a href="/jogo_empresa/jogos" class="nav-link jogos">Jogos</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link usuarios" >Usuários</a>
+    <span aria-hidden="true">•</span>
+    <a href="{% url 'cenarios:home' %}" class="nav-link cenarios">Cenários</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link meucadastro">Meu cadastro</a>
   </div>
 </div>
 
@@ -90,11 +100,13 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
       {% csrf_token %}
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button type="button" class="btn alt" id="toggleBtnTop" style="display:none">Ativar/Inativar</button>
-        <button type="button" class="btn" id="simulateBtn" onclick="window.location.href='/simulacao/simular/'">Simular</button>
+        <button type="button" class="btn" id="simulateBtn" onclick="window.location.href='/simulacao/simular/'">
+    Simular
+</button>
       </div>
     </form>
 
-    <!-- Barra de busca -->
+    <!-- Busca -->
     <div class="toolbar">
       <form class="search" method="get">
         <span aria-hidden="true">🔎</span>

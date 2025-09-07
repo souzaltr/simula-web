@@ -59,4 +59,4 @@ RUN addgroup --system django && adduser --system django --ingroup django
 # ENV PATH="/opt/venv/bin:$PATH"
 USER django
 # CMD will run when this dockerfile is running
-CMD ["sh", "-c", "python manage.py collectstatic --no-input; python manage.py migrate; gunicorn mydjango.wsgi -b 0.0.0.0:8000 & celery --app myapp.tasks worker --loglevel=INFO"]
+CMD ["sh", "-c", "python manage.py collectstatic --no-input; python manage.py migrate; gunicorn mydjango.wsgi -b 0.0.0.0:8000 & celery -A mydjango worker --loglevel=INFO"]

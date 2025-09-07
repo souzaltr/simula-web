@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Simular{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-4">Simulação</h1>
+
+    <form method="post" action="{% url 'simulacao:simular' %}" class="row g-3">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="col-12">
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        </div>
+      {% endif %}
+
+      <div class="col-md-6">
+        <label class="form-label">Ação</label>
+        {{ form.acao }}
+      </div>
+
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check">
+          {{ form.forcar_decisoes_automaticas }}
+          <label class="form-check-label" for="{{ form.forcar_decisoes_automaticas.id_for_label }}">
+            Forçar decisões automáticas
+          </label>
+        </div>
+      </div>
+
+      {{ form.request_id }}
+
+      <div class="col-12">
+        <h2 class="h6 mt-3">Jogos (ativos)</h2>
+        <div class="border rounded p-3 bg-white" style="max-height: 260px; overflow:auto">
+          <div class="row">
+            {% for checkbox in form.jogos %}
+              <div class="col-md-4 col-sm-6">
+                <div class="form-check">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                    {{ checkbox.choice_label }}
+                  </label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Aplicar</button>
+        <a class="btn btn-outline-secondary" href="/">Voltar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if linhas %}
+<div class="card mt-4">
+  <div class="card-body">
+    <h2 class="h6 mb-3">Resultado do lote <code>{{ lote_id }}</code></h2>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Jogo</th>
+            <th>Ação</th>
+            <th>Período final</th>
+            <th>Logs criados</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for l in linhas %}
+          <tr>
+            <td>{{ l.jogo.nome }}</td>
+            <td>{{ l.acao }}</td>
+            <td>{{ l.periodo_final }}</td>
+            <td>{{ l.logs_count }}</td>
+            <td>
+              {% if l.ok %}
+                <span class="badge text-bg-success">OK</span>
+              {% else %}
+                <span class="badge text-bg-danger">Erro</span>
+                {% if l.mensagem %}<div class="small text-danger">{{ l.mensagem }}</div>{% endif %}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mt-4">
+  <div class="card-body">
+    <h2 class="h6 mb-3">Resumo dos Jogos Ativos</h2>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Jogo</th>
+            <th>Código</th>
+            <th>Últ. Simulado</th>
+            <th>Decisões</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for j in jogos %}
+          <tr>
+            <td>{{ j.nome }}</td>
+            <td><span class="badge text-bg-secondary">{{ j.cod }}</span></td>
+            <td>{{ j.periodo_atual }}</td>
+            <td>
+              {% if j.status_decisoes_disponiveis %}
+                <span class="badge text-bg-success">Liberadas</span>
+              {% else %}
+                <span class="badge text-bg-danger">Bloqueadas</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-muted">Sem jogos ativos.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
