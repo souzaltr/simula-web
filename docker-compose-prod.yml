@@ -1,0 +1,75 @@
+version: "3"
+
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30 --label-enable
+
+  nginx:
+    image: nginx:alpine
+    container_name: nz01
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+      - ./docker-django/src/static:/src/static
+      - ./docker-django/src/media:/src/media
+    depends_on:
+      - web
+    networks:
+      - djangonetwork
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  web:
+    image: ghcr.io/karolayneamabile/pw:latest
+    container_name: dz01
+    command: sh -c "python manage.py migrate && gunicorn mydjango.wsgi:application --bind 0.0.0.0:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    environment:
+      - DB_HOST
+      - DB_PORT
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+      - DJANGO_SETTINGS_MODULE
+    user: root
+    networks:
+      - djangonetwork
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  db:
+    image: karolayneamabile/custom-postgres:latest
+    container_name: pz01
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - local_postgres_data_backups:/backups
+    networks:
+      - djangonetwork
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydjango"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  djangonetwork:
+    driver: bridge
