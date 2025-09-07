@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from .models import Usuario, Jogo, Empresa
+from .models import Jogo, Empresa
 
 class JogoForm(forms.ModelForm):
     class Meta:
