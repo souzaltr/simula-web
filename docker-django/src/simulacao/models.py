@@ -4,7 +4,6 @@ from jogos.models import Jogo
 
 
 class SimulacaoPeriodo(models.Model):
-   
     R0D = 'R0D'
     RND = 'RND'
     SPA = 'SPA'

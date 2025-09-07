@@ -3,7 +3,6 @@ from django.db import transaction
 from jogos.models import Jogo
 from .models import SimulacaoExecucao, SimulacaoPeriodo
 
-# Conjunto com os códigos válidos de ação
 ACOES = {c for c, _ in SimulacaoPeriodo.ACAO_CHOICES}
 
 
