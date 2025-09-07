@@ -96,7 +96,28 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 <div class="container">
   <!-- ESQUERDA — INSUMOS -->
   <section class="card">
+
+      <!-- FILTRO DE INSUMOS -->
+    <div class="toolbar">
+      <form class="search" method="get">
+        <span aria-hidden="true">🔎</span>
+        <input type="text" name="q_insumo" value="{{ q_insumo|default:'' }}" placeholder="Busque um insumo.">
+        <input type="hidden" name="sort_insumo" value="{{ sort_insumo|default:'asc' }}">
+        <button class="btn alt" type="submit">Filtrar</button>
+      </form>
+    </div>
+
+    <!-- ORDENAR INSUMOS POR NOME -->
+    <div class="list-head">
+      <a href="?{% if q_insumo %}q_insumo={{ q_insumo|urlencode }}&{% endif %}sort_insumo={% if sort_insumo == 'asc' %}desc{% else %}asc{% endif %}"
+         title="Ordenar por nome">
+        Nome
+        <span>{% if sort_insumo == 'asc' %}▲{% else %}▼{% endif %}</span>
+      </a>
+    </div>
+
     <h1>Lista Insumos</h1>
+
     <div class="list">
       {% for insumo in insumos %}
         <div class="item">
@@ -125,6 +146,25 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 
   <!-- CENTRO — PRODUTOS -->
   <section class="card">
+
+        <div class="toolbar">
+      <form class="search" method="get">
+        <span aria-hidden="true">🔎</span>
+        <input type="text" name="q_produto" value="{{ q_produto|default:'' }}" placeholder="Busque um produto.">
+        <input type="hidden" name="sort_produto" value="{{ sort_produto|default:'asc' }}">
+        <button class="btn alt" type="submit">Filtrar</button>
+      </form>
+    </div>
+
+    <!-- ORDENAR INSUMOS POR NOME -->
+    <div class="list-head">
+      <a href="?{% if q_produto %}q_produto={{ q_produto|urlencode }}&{% endif %}sort_produto={% if sort_produto == 'asc' %}desc{% else %}asc{% endif %}"
+         title="Ordenar por nome">
+        Nome
+        <span>{% if sort_produto == 'asc' %}▲{% else %}▼{% endif %}</span>
+      </a>
+    </div>
+
     <h1>Lista Produtos</h1>
     <div class="list">
       {% for produto in produtos %}
@@ -160,6 +200,46 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 
   <!-- DIREITA — CENÁRIOS -->
   <section class="card">
+
+  <!-- DIREITA — CENÁRIOS -->
+  <section class="card">
+    <h1>Lista Cenários</h1>
+    <div class="list">
+      {% for cenario in cenarios %}
+        <div class="item">
+          <div style="flex:1">
+            <div style="font-weight:700">{{ cenario.nome }}</div>
+            <small>Produto: {{ cenario.produto.nome }}</small>
+          </div>
+          <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="{% url 'cenarios:editarCenario' cenario.id %}" class="alt">Editar</a>
+            <a href="{% url 'cenarios:removerCenario' cenario.id %}" class="danger"
+               onclick="return confirm('Voce tem certeza que deseja excluir o Cenário {{ cenario.nome }}?\nAtenção: Só é possível deletar um Cenário que está num Jogo Inativo!');">Excluir</a>
+          </div>
+        </div>
+      {% empty %}
+        <div class="item"><small>Nenhum cenário cadastrado.</small></div>
+      {% endfor %}
+    </div>
+
+        <div class="toolbar">
+      <form class="search" method="get">
+        <span aria-hidden="true">🔎</span>
+        <input type="text" name="q_cenario" value="{{ q_cenario|default:'' }}" placeholder="Busque um Cenario.">
+        <input type="hidden" name="sort_cenario" value="{{ sort_cenario|default:'asc' }}">
+        <button class="btn alt" type="submit">Filtrar</button>
+      </form>
+    </div>
+
+    <!-- ORDENAR INSUMOS POR NOME -->
+    <div class="list-head">
+      <a href="?{% if q_cenario %}q_cenario={{ q_cenario|urlencode }}&{% endif %}sort_cenario={% if sort_cenario == 'asc' %}desc{% else %}asc{% endif %}"
+         title="Ordenar por nome">
+        Nome
+        <span>{% if sort_cenario == 'asc' %}▲{% else %}▼{% endif %}</span>
+      </a>
+    </div>
+
     <h1>Lista Cenários</h1>
     <div class="list">
       {% for cenario in cenarios %}
@@ -187,6 +267,5 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
     </form>
   </section>
 </div>
-
 </body>
 </html>

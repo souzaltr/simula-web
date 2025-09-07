@@ -7,6 +7,43 @@ from jogos.models import Jogo
 
 # Create your views here.
 
+#filtrar e ordenar
+def build_insumos_queryset(request):
+    q = (request.GET.get("q_insumo")or"").strip()
+    sort = (request.GET.get("sort_insumo") or "asc").lower()
+
+    qs = Insumo.objects.all()
+
+    if q:
+        qs=qs.filter(nome__icontains=q)
+
+    order = "nome" if sort == "asc" else "-nome"
+    return qs.order_by(order), q, sort
+
+def build_produtos_queryset(request):
+    q = (request.GET.get("q_produto") or "").strip()
+    sort = (request.GET.get("sort_produto") or "asc").lower()
+
+    qs = Produto.objects.all()
+
+    if q:
+        qs=qs.filter(nome__icontains=q)
+
+    order = "nome" if sort == "asc" else "-nome"
+    return qs.order_by(order), q ,sort
+
+def build_cenarios_queryset(request):
+    q = (request.GET.get("q_cenario") or "").strip()
+    sort = (request.GET.get("sort_cenario") or "asc").lower()
+    qs = Cenario.objects.all()
+
+    if q: 
+        qs=qs.filter(nome__icontains=q)
+
+    order = "nome" if sort == "asc" else "-nome"
+    return qs.order_by(order), q, sort
+    
+
 #lógica dos CRUDs em uma unica função da view
 def cenarios_view(request:HttpRequest):
    
@@ -60,18 +97,28 @@ def cenarios_view(request:HttpRequest):
                         messages.error(request,"Erro ao salvar, é necessário um produto vinculado para criar um Cenário!")
                 
     #lista todos cenarios,produtos e insumo e seus respectivos forms
+    insumos, q_insumo, sort_insumo = build_insumos_queryset(request)
+    cenarios, q_cenario, sort_cenario = build_cenarios_queryset(request)
+    produtos,q_produto,sort_produto = build_produtos_queryset(request)
     contexto = { 
-        "insumos": Insumo.objects.all(),
-        "cenarios": Cenario.objects.all(),
-        "produtos": Produto.objects.all(),
+        "insumos": insumos,
+        "cenarios": cenarios,
+        "produtos": produtos,
         "insumo_form": insumo_form,
         "produto_form": produto_form,
         "cenario_form": cenario_form,
+        "q_insumo": q_insumo,
+        "q_produto": q_produto,
+        "q_cenario": q_cenario,
+        "sort_insumo": sort_insumo,
+        "sort_produto": sort_produto,
+        "sort_cenario": sort_cenario
     }
                       
     return render(request,'cenarios/cenarios.html',contexto)
 
 def removerInsumo(request:HttpRequest,id):
+    ## remover insumo só se nao tiver produto e um cenario relacionado a ele
     insumo = get_object_or_404(Insumo,id=id)
     insumo.delete()
     messages.success(request,"Insumo Deletado com sucesso")
@@ -154,3 +201,5 @@ def editarCenario(request:HttpRequest, id):
         "produtos": Produto.objects.all(),
     }
     return render(request, 'cenarios/cenarios.html',contexto)
+
+
