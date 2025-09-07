@@ -128,7 +128,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
           <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="{% url 'cenarios:editarInsumo' insumo.id %}" class="alt">Editar</a>
             <a href="{% url 'cenarios:removerInsumo' insumo.id %}" class="danger"
-               onclick="return confirm('Voce tem certeza que deseja excluir o insumo {{insumo.nome}}?');">Excluir</a>
+               onclick="return confirm('Voce tem certeza que deseja excluir o insumo {{insumo.nome}}?\nAtenção só é possível apagar um insumo que não está vinculado a um produto.');">Excluir</a>
           </div>
         </div>
       {% empty %}
@@ -182,7 +182,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
           <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="{% url 'cenarios:editarProduto' produto.id %}" class="alt">Editar</a>
             <a href="{% url 'cenarios:removerProduto' produto.id %}" class="danger"
-               onclick="return confirm('Voce tem certeza que deseja excluir o produto {{produto.nome}}?');">Excluir</a>
+               onclick="return confirm('Voce tem certeza que deseja excluir o produto {{produto.nome}}?\nAtenção só é possível deletar um produto que não está vinculado a nenhum cenário');">Excluir</a>
           </div>
         </div>
       {% empty %}

@@ -120,14 +120,24 @@ def cenarios_view(request:HttpRequest):
 def removerInsumo(request:HttpRequest,id):
     ## remover insumo só se nao tiver produto e um cenario relacionado a ele
     insumo = get_object_or_404(Insumo,id=id)
-    insumo.delete()
-    messages.success(request,"Insumo Deletado com sucesso")
+    produtoVinculado = Produto.objects.filter(insumos=insumo).exists()
+
+    if produtoVinculado:
+        messages.error(request,"Não é possível excluir o insumo pois está associado a um produto!")
+    else:
+        insumo.delete()
+        messages.success(request,"Insumo Deletado com sucesso")
     return redirect("cenarios:home")
 
 def removerProduto(request:HttpRequest,id):
     produto = get_object_or_404(Produto,id=id)
-    produto.delete()
-    messages.success(request,"Produto Deletado com sucesso")
+    cenarioVinculado = (Cenario.objects.filter(produto=produto)).exists()
+
+    if cenarioVinculado:
+        messages.error(request,"Não é possível exlcuir o prouto pois está associado a um cenário!")
+    else:
+        produto.delete()
+        messages.success(request,"Produto Deletado com sucesso")
     return redirect("cenarios:home")
 
 def removerCenario(request:HttpRequest,id):
