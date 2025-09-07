@@ -1,0 +1,56 @@
+# Imagem base
+FROM python:3.7-alpine
+
+# Variáveis de ambiente
+ENV PYTHONUNBUFFERED=1
+ENV C_FORCE_ROOT=true
+
+# Diretórios
+WORKDIR /app
+RUN mkdir -p /app/src /static /media
+
+# Dependências do sistema
+RUN apk update && apk add --no-cache \
+    postgresql \
+    zlib \
+    jpeg \
+    bash
+
+# Dependências temporárias para build
+RUN apk add --no-cache --virtual build-deps \
+    gcc \
+    python3-dev \
+    musl-dev \
+    postgresql-dev \
+    zlib-dev \
+    jpeg-dev
+
+# Copiar requirements e instalar
+COPY src/requirements.pip /tmp/requirements.pip
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.pip
+
+# Remover dependências temporárias
+RUN apk del build-deps && \
+    rm -rf /root/.cache/pip
+
+# Criar usuário não-root
+RUN addgroup --system django && adduser --system django --ingroup django
+
+# Copiar projeto inteiro
+COPY src/ /app/src/
+
+# Definir diretório de trabalho para os comandos
+WORKDIR /app/src
+
+# Configurar permissões
+RUN mkdir -p /app/src/static && \
+    chown -R django:django /app/src /static /media
+
+USER django
+
+# Rodar collectstatic no build
+RUN python manage.py collectstatic --no-input
+
+# Comando final: Gunicorn apenas
+CMD ["sh", "-c", "python manage.py migrate && gunicorn mydjango.wsgi -b 0.0.0.0:8000"]
