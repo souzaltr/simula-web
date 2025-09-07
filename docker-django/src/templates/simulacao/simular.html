@@ -50,8 +50,10 @@
       </div>
 
       <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary" type="submit">Aplicar</button>
-        <a class="btn btn-outline-secondary" href="/">Voltar</a>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Aplicar</button>
+          <a class="btn btn-outline-secondary" href="{% url 'jogo_empresa:jogos_crud' %}">Voltar</a>
+</div>
       </div>
     </form>
   </div>
