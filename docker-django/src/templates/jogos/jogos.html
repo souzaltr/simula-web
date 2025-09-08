@@ -17,9 +17,9 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 .container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:420px 1fr}
 .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 h2{margin:0 0 10px}
-.btn{display:inline-block;background:var(--b);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
-.btn.alt{background:#0ea5e9}
-.btn.danger{background:var(--danger)}
+.btn{display:inline-block;background:var(--b);color:#fff !important;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+.btn.alt{background:#0ea5e9 !important;color:#fff !important}
+.btn.danger{background:var(--danger) !important;color:#fff !important}
 .list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow:auto}
 .item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
 .item a{color:#0f172a;text-decoration:none;font-weight:700}
@@ -32,6 +32,20 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 .subnav a{color:#0e5f9e;text-decoration:none;font-weight:700}
 .subnav a:hover{text-decoration:underline}
 .subnav .btn{color:#fff !important}
+
+/* Força cores corretas dos botões */
+button.btn, a.btn, input.btn {
+  background: var(--b) !important;
+  color: #fff !important;
+}
+button.btn.alt, a.btn.alt, input.btn.alt {
+  background: #0ea5e9 !important;
+  color: #fff !important;
+}
+button.btn.danger, a.btn.danger, input.btn.danger {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
 
 /* modal */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px}

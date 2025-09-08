@@ -51,14 +51,6 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 from django.db import transaction
-from .models import Usuario, Empresa # Certifique-se de importar Empresa
-
-# Em seu forms.py
-
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import Group
-from django.db import transaction
 from .models import Usuario, Empresa
 
 class AdminUserCreationForm(UserCreationForm):
