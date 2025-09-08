@@ -1,8 +1,9 @@
-version: "3"
-
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  certs: {}
+  vhost: {}
+  html: {}
 
 services:
 
@@ -12,21 +13,38 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 30 --label-enable
 
-  nginx:
-    image: nginx:alpine
+  nginx-proxy:
+    image: jwilder/nginx-proxy
     container_name: nz01
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./config/nginx:/etc/nginx/conf.d
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./docker-django/src/static:/src/static
       - ./docker-django/src/media:/src/media
-    depends_on:
-      - web
     networks:
       - djangonetwork
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: le01
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NGINX_PROXY_CONTAINER=nz01
+    networks:
+      - djangonetwork
+    depends_on:
+      - nginx-proxy
 
   web:
     image: ghcr.io/karolayneamabile/pw:latest
@@ -38,6 +56,10 @@ services:
     expose:
       - "8000"
     environment:
+      - ALLOWED_HOSTS
+      - VIRTUAL_HOST
+      - LETSENCRYPT_HOST
+      - LETSENCRYPT_EMAIL
       - DB_HOST
       - DB_PORT
       - DB_NAME
