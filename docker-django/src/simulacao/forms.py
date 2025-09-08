@@ -53,12 +53,14 @@ class SimularForm(forms.Form):
         label="Forçar decisões automáticas",
         required=False
     )
+
+    # Se vier vazio, a view gera um novo; se vier preenchido, validamos.
     request_id = forms.CharField(
         widget=forms.HiddenInput(),
         required=False
     )
 
-    # Esses dois campos persistem os filtros atuais no POST
+    # Persistem os filtros atuais no POST
     status = forms.CharField(widget=forms.HiddenInput(), required=False)
     q = forms.CharField(widget=forms.HiddenInput(), required=False)
 
@@ -67,7 +69,7 @@ class SimularForm(forms.Form):
         label="Selecione os jogos",
         queryset=Jogo.objects.none(),
         required=True,
-        widget=forms.CheckboxSelectMultiple()  # <- com parênteses
+        widget=forms.CheckboxSelectMultiple()  # precisa ser instanciado
     )
 
     def __init__(self, *args, **kwargs):
@@ -81,6 +83,25 @@ class SimularForm(forms.Form):
             ).order_by("nome")
 
         self.fields["jogos"].queryset = jogos_qs
+
+    def clean_request_id(self):
+        """
+        Se informado, o request_id deve ter 16 caracteres hexadecimais.
+        (Ele vira o lote_id na SimulacaoExecucao.)
+        """
+        val = (self.cleaned_data.get("request_id") or "").strip()
+        if not val:
+            return ""  # vazio é permitido; a view gerará um novo
+
+        if len(val) != 16:
+            raise forms.ValidationError("ID do lote inválido: use exatamente 16 caracteres hexadecimais.")
+
+        try:
+            int(val, 16)
+        except ValueError:
+            raise forms.ValidationError("ID do lote inválido: use apenas caracteres hexadecimais (0-9, a-f).")
+
+        return val.lower()
 
     def clean_jogos(self):
         """Garante seleção e que todos os jogos sejam ATIVOS."""
