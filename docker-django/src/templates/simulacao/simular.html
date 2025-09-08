@@ -1,75 +1,168 @@
-{% extends "base.html" %}
-{% block title %}Simular{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulação • SimulaWEB</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-{% block content %}
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h1 class="h4 mb-4">Simulação</h1>
+<style>
+:root{--b:#0e5f9e;--c:#1b76bd;--bg:#f3f6fb;--card:#fff;--muted:#6b7280;--danger:#ef4444;--shadow:0 10px 20px rgba(12,76,128,.08);--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 
-    <form method="post" action="{% url 'simulacao:simular' %}" class="row g-3">
+/* TOP BAR */
+.top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
+.wrap{max-width:1100px;margin:0 auto}
+.nav-link{color:#cfe8ff;text-decoration:none;font-weight:700}
+.nav-link:hover{text-decoration:underline}
+.nav-link.active{color:#fff;text-decoration:underline}
+.nav-link.jogos,.nav-link.cenarios{color:#fff}
+.nav-link.usuarios,.nav-link.meucadastro{color:#cccaca}
+
+/* layout */
+.container{max-width:1100px;margin:20px auto;padding:0 20px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:20px}
+h1{margin:0 0 16px;font-size:22px;font-weight:700}
+h2{margin:16px 0 10px;font-size:16px;font-weight:600}
+form{display:grid;gap:14px}
+
+/* botões */
+.btn{display:inline-block;background:var(--b);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer;transition:background .2s}
+.btn:hover{background:#0c4c80}
+.btn.alt{background:#0ea5e9}
+.btn.alt:hover{background:#0284c7}
+.btn.outline{background:#fff;color:#0e5f9e;border:1px solid #cfe8ff}
+.btn.outline:hover{background:#f0f8ff}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+
+/* inputs */
+label{font-size:14px;font-weight:600;margin-bottom:4px;display:block}
+input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+
+/* tabelas */
+.table-wrap{overflow:auto;margin-top:10px}
+.table-sim{width:100%;border-collapse:collapse;font-size:14px}
+.table-sim th,.table-sim td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left}
+.table-sim th{font-weight:600;background:#f9fafb}
+.badge-ok{background:#dcfce7;color:#166534;padding:4px 8px;border-radius:10px;font-size:12px}
+.badge-err{background:#fee2e2;color:#b91c1c;padding:4px 8px;border-radius:10px;font-size:12px}
+.small-muted{font-size:13px;color:#6b7280}
+
+/* erros */
+.alert-err{background:#fee2e2;color:#991b1b;border-left:4px solid #ef4444;padding:10px;border-radius:10px}
+.field-error{color:#b91c1c;font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top">
+  <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
+    <a href="/" style="color:#fff;text-decoration:none;font-weight:800">SimulaWEB</a>
+    <span aria-hidden="true">•</span>
+    <a href="/jogo_empresa/jogos" class="nav-link jogos">Jogos</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link usuarios">Usuários</a>
+    <span aria-hidden="true">•</span>
+    <a href="{% url 'cenarios:home' %}" class="nav-link cenarios">Cenários</a>
+    <span aria-hidden="true">•</span>
+    <a href="#" class="nav-link meucadastro">Meu cadastro</a>
+    <span aria-hidden="true">•</span>
+    <a href="{% url 'simulacao:historico' %}" class="nav-link">Histórico</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h1>Simulação</h1>
+
+    <!-- Filtros -->
+    <h2>Filtros</h2>
+    <form method="get" style="grid-template-columns:1fr 2fr auto auto;align-items:end">
+      <div>
+        <label>Status</label>
+        {{ filtro_form.status }}
+      </div>
+      <div>
+        <label>Busca</label>
+        {{ filtro_form.q }}
+      </div>
+      <div><button type="submit" class="btn alt">Filtrar</button></div>
+      <div><a href="{% url 'simulacao:simular' %}" class="btn outline">Limpar</a></div>
+    </form>
+
+    <!-- Erros do formulário -->
+    {% if form.errors %}
+      <div class="alert-err">
+        <strong>Corrija os erros abaixo:</strong>
+        <ul style="margin:6px 0 0 18px">
+          {% for field, errs in form.errors.items %}
+            {% for e in errs %}
+              <li>{{ e }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- Formulário de simulação -->
+    <h2>Executar Simulação</h2>
+    <form method="post" action="{% url 'simulacao:simular' %}">
       {% csrf_token %}
 
-      {% if form.non_field_errors %}
-        <div class="col-12">
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <label>Ação</label>
+          {{ form.acao }}
         </div>
-      {% endif %}
-
-      <div class="col-md-6">
-        <label class="form-label">Ação</label>
-        {{ form.acao }}
-      </div>
-
-      <div class="col-md-6 d-flex align-items-end">
-        <div class="form-check">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:22px">
           {{ form.forcar_decisoes_automaticas }}
-          <label class="form-check-label" for="{{ form.forcar_decisoes_automaticas.id_for_label }}">
-            Forçar decisões automáticas
-          </label>
+          <label for="{{ form.forcar_decisoes_automaticas.id_for_label }}">Forçar decisões automáticas</label>
         </div>
       </div>
 
       {{ form.request_id }}
+      {{ form.status }} {{ form.q }}
 
-      <div class="col-12">
-        <h2 class="h6 mt-3">Jogos (ativos)</h2>
-        <div class="border rounded p-3 bg-white" style="max-height: 260px; overflow:auto">
-          <div class="row">
-            {% for checkbox in form.jogos %}
-              <div class="col-md-4 col-sm-6">
-                <div class="form-check">
-                  {{ checkbox.tag }}
-                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                    {{ checkbox.choice_label }}
-                  </label>
-                </div>
-              </div>
-            {% endfor %}
+      <h2>Jogos filtrados</h2>
+      <div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;max-height:200px;overflow:auto">
+        {% for checkbox in form.jogos %}
+          <div style="margin-bottom:6px">
+            {{ checkbox.tag }}
+            <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
           </div>
-        </div>
+        {% empty %}
+          <div class="small-muted">Nenhum jogo encontrado.</div>
+        {% endfor %}
       </div>
+      {% if form.jogos.errors %}
+        <div class="field-error">{{ form.jogos.errors.0 }}</div>
+      {% endif %}
 
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary" type="submit">Aplicar</button>
-        <a class="btn btn-outline-secondary" href="/">Voltar</a>
+      {% with form.jogos.field.queryset.count as jogos_count %}
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" type="submit"
+                {% if jogos_count == 0 %}disabled title="Não há jogos ativos para simular"{% endif %}>
+          Aplicar
+        </button>
+        <a class="btn outline" href="{% url 'jogo_empresa:jogos_crud' %}">Voltar</a>
+        <a class="btn alt" href="{% url 'simulacao:historico' %}">Ver Histórico</a>
       </div>
+      {% endwith %}
     </form>
   </div>
-</div>
 
-{% if linhas %}
-<div class="card mt-4">
-  <div class="card-body">
-    <h2 class="h6 mb-3">Resultado do lote <code>{{ lote_id }}</code></h2>
-    <div class="table-responsive">
-      <table class="table table-sm align-middle">
+  {% if linhas %}
+  <div class="card">
+    <h2>Resultado do lote <code>{{ lote_id }}</code></h2>
+    <div class="table-wrap">
+      <table class="table-sim">
         <thead>
           <tr>
-            <th>Jogo</th>
-            <th>Ação</th>
-            <th>Período final</th>
-            <th>Logs criados</th>
-            <th>Status</th>
+            <th>Jogo</th><th>Ação</th><th>Período final</th><th>Logs criados</th><th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -81,10 +174,10 @@
             <td>{{ l.logs_count }}</td>
             <td>
               {% if l.ok %}
-                <span class="badge text-bg-success">OK</span>
+                <span class="badge-ok">OK</span>
               {% else %}
-                <span class="badge text-bg-danger">Erro</span>
-                {% if l.mensagem %}<div class="small text-danger">{{ l.mensagem }}</div>{% endif %}
+                <span class="badge-err">Erro</span>
+                {% if l.mensagem %}<div class="small-muted">{{ l.mensagem }}</div>{% endif %}
               {% endif %}
             </td>
           </tr>
@@ -93,43 +186,37 @@
       </table>
     </div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 
-<div class="card mt-4">
-  <div class="card-body">
-    <h2 class="h6 mb-3">Resumo dos Jogos Ativos</h2>
-    <div class="table-responsive">
-      <table class="table table-sm align-middle">
+  <div class="card">
+    <h2>Resumo dos Jogos (filtrados)</h2>
+    <div class="table-wrap">
+      <table class="table-sim">
         <thead>
-          <tr>
-            <th>Jogo</th>
-            <th>Código</th>
-            <th>Últ. Simulado</th>
-            <th>Decisões</th>
-          </tr>
+          <tr><th>Jogo</th><th>Código</th><th>Últ. Simulado</th><th>Decisões</th></tr>
         </thead>
         <tbody>
         {% for j in jogos %}
           <tr>
             <td>{{ j.nome }}</td>
-            <td><span class="badge text-bg-secondary">{{ j.cod }}</span></td>
+            <td><span style="background:#eef2f7;border-radius:999px;padding:4px 8px">Cód: {{ j.cod }}</span></td>
             <td>{{ j.periodo_atual }}</td>
             <td>
               {% if j.status_decisoes_disponiveis %}
-                <span class="badge text-bg-success">Liberadas</span>
+                <span class="badge-ok">Liberadas</span>
               {% else %}
-                <span class="badge text-bg-danger">Bloqueadas</span>
+                <span class="badge-err">Bloqueadas</span>
               {% endif %}
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="4" class="text-muted">Sem jogos ativos.</td></tr>
+          <tr><td colspan="4" class="small-muted">Nenhum jogo encontrado.</td></tr>
         {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
-</div>
-{% endblock %}
 
+</div>
+</body>
+</html>

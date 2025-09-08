@@ -183,7 +183,9 @@ class CenariosTest(TestCase):
        produto = Produto.objects.create(nome="Pneu")
        produto.insumos.add(insumo)
        cenario = Cenario.objects.create(nome="Bicicletas",produto=produto)
-       Jogo.objects.create(nome="Jogo das Bike",cod="1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False)
+
+       Jogo.objects.create(nome="Jogo das Bike",cod= "1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False)
+
        url = reverse("cenarios:removerCenario", args=[cenario.id])
        response = self.client.get(url, follow=True)
        self.assertEqual(response.status_code, 200)

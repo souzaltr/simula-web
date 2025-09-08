@@ -23,3 +23,4 @@ urlpatterns = [
     path('cenarios/', include("cenarios.urls")),
     path('simulacao/', include('simulacao.urls'))
 ]
+

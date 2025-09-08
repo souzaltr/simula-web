@@ -129,6 +129,27 @@ def _acao_CAD(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
+def _acao_RSD(jogo, execucao):
+    p = jogo.periodo_atual
+
+    for k in range(0, p):
+        _criar_periodo(execucao, jogo, SimulacaoPeriodo.R0D, k, k + 1)
+
+    _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPN, p, p + 1)
+    jogo.periodo_atual = p + 1
+    jogo.save(update_fields=["periodo_atual"])
+
+    _criar_periodo(execucao, jogo, SimulacaoPeriodo.LPD, jogo.periodo_atual, jogo.periodo_atual)
+    if not jogo.status_decisoes_disponiveis:
+        jogo.status_decisoes_disponiveis = True
+        jogo.save(update_fields=["status_decisoes_disponiveis"])
+
+    total_logs = p + 2
+    return {
+        "logs": total_logs,
+        "periodo_final": jogo.periodo_atual,
+        "decisoes": jogo.status_decisoes_disponiveis,
+    }
   
 _FUNCS = {
     SimulacaoPeriodo.R0D: _acao_R0D,
@@ -138,8 +159,8 @@ _FUNCS = {
     SimulacaoPeriodo.RDA: _acao_RDA,
     SimulacaoPeriodo.LPD: _acao_LPD,
     SimulacaoPeriodo.CAD: _acao_CAD,
+    SimulacaoPeriodo.RSD: _acao_RSD,
 }
-
 
 @transaction.atomic
 def processar_lista(jogos_ids, acao, user=None, lote_id=None):
@@ -179,3 +200,4 @@ def processar_lista(jogos_ids, acao, user=None, lote_id=None):
         )
 
     return {"lote_id": lote, "resultados": resultados}
+
