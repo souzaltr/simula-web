@@ -77,6 +77,8 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 </head>
 <body>
 
+{% include '_partials/navbar.html' %}
+
 <!-- TOP BAR com links -->
 <div class="top">
   <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
@@ -147,7 +149,7 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
           </div>
           <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:8px">
             <a href="{% url 'jogo_empresa:empresas_crud' j.id %}">Empresas</a>
-            <a href="#" title="Em breve">Usuários</a>
+            <a href="{% url 'authentication:user_management' %}?jogo={{ j.cod }}" title="Em breve">Usuários</a>
             <a class="btn" href="?edit={{ j.id }}">Editar</a>
             <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
               {% csrf_token %}

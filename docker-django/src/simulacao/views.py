@@ -6,7 +6,10 @@ from .forms import SimularForm
 from .services import processar_lista, gerar_lote_id
 from .models import SimulacaoPeriodo
 
+from django.utils.decorators import method_decorator
+from authentication.decorators import group_required
 
+@method_decorator(group_required(['Mediador']), name='dispatch')
 class SimulacaoView(View):
     template_name = "simulacao/simular.html"
 
@@ -54,7 +57,7 @@ class SimulacaoView(View):
         }
         return render(request, self.template_name, contexto)
 
-
+@method_decorator(group_required(['Mediador']), name='dispatch')
 class HistoricoView(View):
     template_name = "simulacao/historico.html"
 

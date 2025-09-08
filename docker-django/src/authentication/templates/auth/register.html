@@ -1,0 +1,88 @@
+{% extends "auth/base.html" %}
+{% block title %}Registro - Simulare{% endblock %}
+{% block content %}
+    <h2 class="auth-title">Criar nova conta</h2>
+    <p class="auth-subtitle">Preencha os dados para começar</p>
+   
+    <form method="post">
+        {% csrf_token %}
+       
+        {% if form.non_field_errors %}
+            <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+       
+        <div class="form-container">
+            <div class="form-column">
+                {% for field in form %}
+                    {% if field.name == 'username' or field.name == 'email' or field.name == 'password1' or field.name == 'password2' %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <p class="error-message">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="form-column">
+                {% for field in form %}
+                    {% if field.name == 'cpf' %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <p class="error-message">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% elif field.name == 'empresa' %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">Instituição ou empresa:</label>
+                            {{ field }}
+                            <div class="form-help-text">Se é estudante, informe sua instituição de ensino.</div>
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <p class="error-message">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% elif field.name == 'codigo_de_jogo' %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            <div class="form-help-text">Se ainda não possuir o código para a inscrição, você poderá digitá-lo posteriormente.</div>
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <p class="error-message">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+       
+        <button type="submit" class="btn">Criar conta</button>
+    </form>
+   
+    <div class="auth-link">
+        <p>Já tem uma conta? <a href="{% url 'authentication:login' %}">Faça login</a></p>
+    </div>
+{% endblock %}
