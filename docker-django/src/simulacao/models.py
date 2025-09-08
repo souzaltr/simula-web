@@ -11,6 +11,7 @@ class SimulacaoPeriodo(models.Model):
     RDA = 'RDA'
     LPD = 'LPD'
     CAD = 'CAD'
+    RSD = 'RSD'
 
     ACAO_CHOICES = (
         (R0D, 'Reprocessar 0→atual'),
@@ -20,8 +21,8 @@ class SimulacaoPeriodo(models.Model):
         (RDA, 'Reprocessar período passado'),
         (LPD, 'Liberar próximo período de decisões'),
         (CAD, 'Cancelar simulação do último período'),
+        (RSD, 'Reprocessar 0→atual, simular e liberar próximo'),  # <-- NOVA OPÇÃO
     )
-
     execucao = models.ForeignKey('SimulacaoExecucao', on_delete=models.CASCADE, related_name='periodos')
     jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name='periodos')
     acao = models.CharField(max_length=3, choices=ACAO_CHOICES)

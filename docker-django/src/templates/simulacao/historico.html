@@ -30,12 +30,21 @@
         </select>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
+        <label class="form-label">Status do jogo</label>
+        <select name="status" class="form-select">
+          <option value="" {% if not status %}selected{% endif %}>Todos</option>
+          <option value="A" {% if status == "A" %}selected{% endif %}>Ativos</option>
+          <option value="I" {% if status == "I" %}selected{% endif %}>Inativos</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
         <label class="form-label">Lote</label>
         <input type="text" name="lote" value="{{ lote }}" class="form-control" placeholder="ID do lote">
       </div>
 
-      <div class="col-md-3 d-flex align-items-end">
+      <div class="col-md-2 d-flex align-items-end">
         <button type="submit" class="btn btn-primary me-2">Filtrar</button>
         <a href="{% url 'simulacao:historico' %}" class="btn btn-outline-secondary">Limpar</a>
       </div>
@@ -48,6 +57,7 @@
           <tr>
             <th>Quando</th>
             <th>Jogo</th>
+            <th>Status</th>
             <th>Ação</th>
             <th>Período de → para</th>
             <th>Lote</th>
@@ -58,12 +68,19 @@
           <tr>
             <td>{{ p.requested_at|date:"d/m/Y H:i" }}</td>
             <td>{{ p.jogo.nome }}</td>
+            <td>
+              {% if p.jogo.status == p.jogo.ATIVO|default:"A" %}
+                <span class="badge text-bg-success">Ativo</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Inativo</span>
+              {% endif %}
+            </td>
             <td>{{ p.get_acao_display }}</td>
             <td>{{ p.periodo_de }} → {{ p.periodo_para }}</td>
             <td>{{ p.execucao.lote_id }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="text-muted">Sem registros.</td></tr>
+          <tr><td colspan="6" class="text-muted">Sem registros.</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -75,7 +92,8 @@
         <ul class="pagination pagination-sm">
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&lote={{ lote }}">«</a>
+              <a class="page-link"
+                 href="?page={{ page_obj.previous_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&status={{ status }}&lote={{ lote }}">«</a>
             </li>
           {% else %}
             <li class="page-item disabled"><span class="page-link">«</span></li>
@@ -89,7 +107,8 @@
 
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&lote={{ lote }}">»</a>
+              <a class="page-link"
+                 href="?page={{ page_obj.next_page_number }}&acao={{ acao }}&jogo={{ jogo_sel }}&status={{ status }}&lote={{ lote }}">»</a>
             </li>
           {% else %}
             <li class="page-item disabled"><span class="page-link">»</span></li>

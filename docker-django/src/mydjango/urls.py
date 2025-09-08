@@ -24,6 +24,7 @@ urlpatterns = [
     path('jogo_empresa/', include('jogo_empresa.urls')),
     path('cenarios/', include("cenarios.urls")),
     path('auth/', include("authentication.urls")),
+    path('simulacao/', include('simulacao.urls')),
 
     path('home', TemplateView.as_view(template_name='general_home.html'), name='general_home'),
 ]

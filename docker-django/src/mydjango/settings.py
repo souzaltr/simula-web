@@ -25,8 +25,8 @@ SECRET_KEY = 's_-aro!sw@)bob$tojdq!s61$+3s22y=dbe!b5y3!p4ch&y3k#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['web']
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+# ALLOWED_HOSTS = ['web']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'cenarios',
     'simulacao',
 ]
+
 
 AUTH_USER_MODEL = "authentication.Usuario"
 

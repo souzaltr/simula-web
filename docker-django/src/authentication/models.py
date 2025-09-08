@@ -47,7 +47,8 @@ class Usuario(AbstractUser):
         Jogo,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name='usuarios'
     )
 
     USERNAME_FIELD = 'email'
