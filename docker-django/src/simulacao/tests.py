@@ -216,4 +216,5 @@ class HistoricoViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         page_obj = resp.context["page_obj"]
         self.assertEqual(page_obj.paginator.count, 1)
+
         self.assertEqual(page_obj.object_list[0].execucao.lote_id, "aaaaaaaaaaaaaaaa")

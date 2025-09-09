@@ -183,7 +183,9 @@ class CenariosTest(TestCase):
        produto = Produto.objects.create(nome="Pneu")
        produto.insumos.add(insumo)
        cenario = Cenario.objects.create(nome="Bicicletas",produto=produto)
-       Jogo.objects.create(nome="Jogo das Bike",cod="1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False)
+
+       Jogo.objects.create(nome="Jogo das Bike",cod= "1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False)
+
        url = reverse("cenarios:removerCenario", args=[cenario.id])
        response = self.client.get(url, follow=True)
        self.assertEqual(response.status_code, 200)
@@ -210,8 +212,10 @@ class CenariosTest(TestCase):
        
        insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
        insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+
        produto = Produto.objects.create(nome="Pneu")
        produto.insumos.add(insumo1)
+       
        url = reverse("cenarios:editarProduto", args=[produto.id])
 
        novos_dados = {
@@ -230,11 +234,15 @@ class CenariosTest(TestCase):
        
        insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
        insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+
        produto1 = Produto.objects.create(nome="Pneu")
        produto2 = Produto.objects.create(nome="Piso")
+
        produto1.insumos.add(insumo1)
        produto2.insumos.add(insumo2)
+
        cenario = Cenario.objects.create(nome="Bicicletas",produto=produto1)
+
        url = reverse("cenarios:editarCenario", args=[cenario.id])
 
        novos_dados = {
@@ -247,3 +255,76 @@ class CenariosTest(TestCase):
        self.assertEqual(cenario.nome, "Loja de Pisos")
        self.assertEqual(cenario.produto.id,produto2.id)
        self.assertRedirects(response, reverse("cenarios:home"))
+
+    def test_listar_insumos(self):
+
+       Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
+       Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+       Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
+       Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
+
+       url = reverse("cenarios:home")
+       response = self.client.get(url,follow=True)
+
+       self.assertEqual(response.status_code, 200)
+       self.assertContains(response, "Borracha")
+       self.assertContains(response, "Mármore")
+       self.assertContains(response, "Madeira")
+       self.assertContains(response, "Mola")
+       self.assertEqual(Insumo.objects.count(), 4)
+
+    def test_listar_produtos(self):
+       
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
+       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
+
+       produto1 = Produto.objects.create(nome="Pneu")
+       produto2 = Produto.objects.create(nome="Piso")
+       produto3 = Produto.objects.create(nome="Suspensão")
+       produto4 = Produto.objects.create(nome = "Quadros")
+
+       produto1.insumos.add(insumo1)
+       produto2.insumos.add(insumo2)
+       produto3.insumos.add(insumo4)
+       produto4.insumos.add(insumo3)
+
+       url = reverse("cenarios:home")
+       response = self.client.get(url,follow=True)
+       self.assertEqual(response.status_code, 200)
+       self.assertContains(response, "Pneu")
+       self.assertContains(response, "Piso")
+       self.assertContains(response, "Suspensão")
+       self.assertContains(response, "Quadros")
+       self.assertEqual(Insumo.objects.count(), 4)
+
+    def test_listar_cenarios(self):
+       
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
+       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
+       produto1 = Produto.objects.create(nome="Pneu")
+       produto2 = Produto.objects.create(nome="Piso")
+       produto3 = Produto.objects.create(nome="Suspensão")
+       produto4 = Produto.objects.create(nome = "Quadros")
+
+       produto1.insumos.add(insumo1)
+       produto2.insumos.add(insumo2)
+       produto3.insumos.add(insumo4)
+       produto4.insumos.add(insumo3)
+
+       Cenario.objects.create(nome="Loja de Bicicletas",produto=produto1)
+       Cenario.objects.create(nome="Loja de Construção de Casas",produto=produto2)
+       Cenario.objects.create(nome="Oficina Mecânica",produto=produto3)
+       Cenario.objects.create(nome="Loja de Decorações",produto=produto4)
+
+       url = reverse("cenarios:home")
+       response = self.client.get(url,follow=True)
+       self.assertEqual(response.status_code, 200)
+       self.assertContains(response, "Loja de Bicicletas")
+       self.assertContains(response, "Loja de Construção de Casas")
+       self.assertContains(response, "Oficina Mecânica")
+       self.assertContains(response, "Loja de Decorações")
+       self.assertEqual(Insumo.objects.count(), 4)

@@ -200,3 +200,4 @@ def processar_lista(jogos_ids, acao, user=None, lote_id=None):
         )
 
     return {"lote_id": lote, "resultados": resultados}
+
