@@ -69,7 +69,7 @@ class SimulacaoView(View):
                 "filtro_form": filtro_form,
                 "jogos": jogos_filtrados,
             })
-
+          
         # --- Guard extra: impedir processamento sem seleção
         jogos_sel_qs = form.cleaned_data.get("jogos")
         if not jogos_sel_qs or jogos_sel_qs.count() == 0:

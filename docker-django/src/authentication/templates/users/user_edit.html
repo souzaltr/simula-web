@@ -1,0 +1,116 @@
+{% extends "users/base.html" %}
+
+{% block title %}Editar Usuário{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1 class="page-title">Editar Usuário</h1>
+        <p class="page-subtitle">Atualize as informações de <strong>{{ user_to_edit.username }}</strong></p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Informações do Usuário</h2>
+            <p class="card-subtitle">Modifique os dados conforme necessário</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-grid">
+                
+                {% for field in form %}
+                    {% if field.name != 'codigo_de_jogo' %}
+                        <div class="form-group" id="group-{{ field.name }}">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <p style="color:var(--danger); font-size:13px; margin:6px 0 0;">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div id="game-field-container" {% if not need_game %}style="display: none;"{% endif %}>
+                    <div class="form-group">
+                        {{ form.codigo_de_jogo.label_tag }}
+                        {{ form.codigo_de_jogo }}
+                        {% if form.codigo_de_jogo.errors %}
+                            {% for error in form.codigo_de_jogo.errors %}
+                                <p style="color:var(--danger); font-size:13px; margin:6px 0 0;">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            
+            <div style="display:flex; gap:12px; align-items:center; margin-top:24px;">
+                <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                <a href="{% url 'authentication:user_management' %}" class="btn" style="background:#f1f5f9; color:#64748b;">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="border:1px solid #e5e7eb;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <div style="width:40px; height:40px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center;">
+                <div style="width:20px; height:20px; background:#64748b; border-radius:50%;"></div>
+            </div>
+            <div>
+                <h3 style="margin:0; font-size:16px; font-weight:600;">{{ user_to_edit.username }}</h3>
+                <p style="margin:0; font-size:14px; color:var(--muted);">
+                    {% if user_to_edit.email %}{{ user_to_edit.email }}{% else %}Sem e-mail cadastrado{% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; font-size:14px;">
+            <div>
+                <p style="margin:0; color:var(--muted); font-size:13px;">Data de Criação</p>
+                <p style="margin:4px 0 0; font-weight:500;">{{ user_to_edit.date_joined|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div>
+                <p style="margin:0; color:var(--muted); font-size:13px;">Último Login</p>
+                <p style="margin:4px 0 0; font-weight:500;">
+                    {% if user_to_edit.last_login %}
+                        {{ user_to_edit.last_login|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Nunca fez login
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <p style="margin:0; color:var(--muted); font-size:13px;">Grupos</p>
+                <div style="margin:4px 0 0; display:flex; gap:4px; flex-wrap:wrap;">
+                    {% for group in user_to_edit.groups.all %}
+                        <span class="badge badge-primary">{{ group.name }}</span>
+                    {% empty %}
+                        <span class="badge badge-default">Sem grupos</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const vinculoSelect = document.getElementById('id_vinculo');
+            const gameFieldContainer = document.getElementById('game-field-container');
+
+            function toggleGameField() {
+                const selectedValue = vinculoSelect.value;
+                if (selectedValue && selectedValue !== 'mediador' && selectedValue !== 'diretor') {
+                    gameFieldContainer.style.display = 'block';
+                } else {
+                    gameFieldContainer.style.display = 'none';
+                }
+            }
+
+            toggleGameField();
+
+            vinculoSelect.addEventListener('change', toggleGameField);
+        });
+    </script>
+{% endblock %}

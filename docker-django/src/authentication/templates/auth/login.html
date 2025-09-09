@@ -1,0 +1,30 @@
+{% extends "auth/base.html" %}
+{% block title %}Login - Simulare{% endblock %}
+{% block content %}
+    <h2 class="auth-title">Bem-vindo de volta</h2>
+    <p class="auth-subtitle">Entre na sua conta para continuar</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="field-errors">
+                        {% for error in field.errors %}
+                            <p class="error-message">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+       
+        <button type="submit" class="btn">Entrar</button>
+    </form>
+    
+    <div class="auth-link">
+        <p>Não tem uma conta? <a href="{% url 'authentication:register' %}">Registre-se</a></p>
+    </div>
+{% endblock %}

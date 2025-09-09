@@ -8,6 +8,8 @@ from jogos.models import Jogo
 from jogo_empresa.models import Empresa
 from cenarios.models import Cenario
 
+from authentication.decorators import group_required
+
 def pagina_home(request):
     contexto = {"nome": "Alessandro"}
     return render(request, 'home.html', contexto)
@@ -36,7 +38,7 @@ def build_empresas_queryset(request, jogo):
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q, sort
 
-
+@group_required(['Mediador'])
 def jogos_crud(request):
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
@@ -129,7 +131,7 @@ def jogos_crud(request):
         'q': q, 'sort': sort,   # <- manda pra template
     })
 
-
+@group_required(['Mediador'])
 def empresas_crud(request, jogo_id):
     jogo = get_object_or_404(Jogo, pk=jogo_id)
 
@@ -207,5 +209,3 @@ def empresas_crud(request, jogo_id):
         'empresa_edit': empresa_edit,
         'q': q, 'sort': sort,
     })
-
-

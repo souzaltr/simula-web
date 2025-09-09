@@ -5,9 +5,10 @@ from django.http import HttpRequest
 from django.contrib import messages
 from jogos.models import Jogo
 
-# Create your views here.
+from authentication.decorators import group_required
 
-#filtrar e ordenar
+#lógica dos CRUDs em uma unica função da view
+@group_required(['Mediador'])
 def build_insumos_queryset(request):
     q = (request.GET.get("q_insumo")or"").strip()
     sort = (request.GET.get("sort_insumo") or "asc").lower()
@@ -20,6 +21,7 @@ def build_insumos_queryset(request):
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q, sort
 
+@group_required(['Mediador'])
 def build_produtos_queryset(request):
     q = (request.GET.get("q_produto") or "").strip()
     sort = (request.GET.get("sort_produto") or "asc").lower()
@@ -32,6 +34,7 @@ def build_produtos_queryset(request):
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q ,sort
 
+@group_required(['Mediador'])
 def build_cenarios_queryset(request):
     q = (request.GET.get("q_cenario") or "").strip()
     sort = (request.GET.get("sort_cenario") or "asc").lower()
@@ -45,6 +48,7 @@ def build_cenarios_queryset(request):
     
 
 #lógica dos CRUDs em uma unica função da view
+@group_required(['Mediador'])
 def cenarios_view(request:HttpRequest):
    
     insumo_form = InsumoForm()
@@ -117,6 +121,7 @@ def cenarios_view(request:HttpRequest):
                       
     return render(request,'cenarios/cenarios.html',contexto)
 
+@group_required(['Mediador'])
 def removerInsumo(request:HttpRequest,id):
     ## remover insumo só se nao tiver produto e um cenario relacionado a ele
     insumo = get_object_or_404(Insumo,id=id)
@@ -129,6 +134,7 @@ def removerInsumo(request:HttpRequest,id):
         messages.success(request,"Insumo Deletado com sucesso")
     return redirect("cenarios:home")
 
+@group_required(['Mediador'])
 def removerProduto(request:HttpRequest,id):
     produto = get_object_or_404(Produto,id=id)
     cenarioVinculado = (Cenario.objects.filter(produto=produto)).exists()
@@ -140,6 +146,7 @@ def removerProduto(request:HttpRequest,id):
         messages.success(request,"Produto Deletado com sucesso")
     return redirect("cenarios:home")
 
+@group_required(['Mediador'])
 def removerCenario(request:HttpRequest,id):
 
     cenario = get_object_or_404(Cenario,id=id)
@@ -153,6 +160,7 @@ def removerCenario(request:HttpRequest,id):
         messages.success(request,"Cenário Deletado com sucesso")
     return redirect("cenarios:home")
 
+@group_required(['Mediador'])
 def editarInsumo(request:HttpRequest, id):
     insumo = get_object_or_404(Insumo,id=id)
     if request.method == "POST":
@@ -173,6 +181,7 @@ def editarInsumo(request:HttpRequest, id):
     
     return render(request, 'cenarios/cenarios.html',contexto)
 
+@group_required(['Mediador'])
 def editarProduto(request:HttpRequest, id):
     produto = get_object_or_404(Produto, id=id)
     if request.method == "POST":
@@ -193,6 +202,7 @@ def editarProduto(request:HttpRequest, id):
 
     return render(request, 'cenarios/cenarios.html',contexto)
 
+@group_required(['Mediador'])
 def editarCenario(request:HttpRequest, id):
     cenario = get_object_or_404(Cenario,id=id)
     if request.method == "POST":

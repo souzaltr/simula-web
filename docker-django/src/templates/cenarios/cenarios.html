@@ -13,18 +13,6 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 
-/* TOP BAR — com navegação */
-.top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
-.wrap{max-width:1100px;margin:0 auto}
-.nav-link{color:#cfe8ff;text-decoration:none;font-weight:700}
-.nav-link:hover{text-decoration:underline}
-.nav-link.active{color:#fff;text-decoration:underline}
-
-.nav-link.jogos,
-.nav-link.cenarios {color:#fff}
-.nav-link.usuarios,
-.nav-link.meucadastro {color:#cccaca}
-
 /* GLOBAL MESSAGES (topo, largura total) */
 .global-messages{max-width:1100px;margin:14px auto 0;padding:0 20px}
 .global-messages .msg{margin:0 0 6px;padding:8px 10px;border-radius:8px;background:#ecfeff;color:#075985}
@@ -69,20 +57,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
 </head>
 <body>
 
-<!-- TOP BAR com links -->
-<div class="top">
-  <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
-    <a href="" style="color:#fff;text-decoration:none;font-weight:800">SimulaWEB</a>
-    <span aria-hidden="true">•</span>
-    <a href="/jogo_empresa/jogos" class="nav-link jogos">Jogos</a>
-    <span aria-hidden="true">•</span>
-    <a href="#" class="nav-link usuarios" >Usuários</a>
-    <span aria-hidden="true">•</span>
-    <a href="{% url 'cenarios:home' %}" class="nav-link cenarios">Cenários</a>
-    <span aria-hidden="true">•</span>
-    <a href="#" class="nav-link meucadastro">Meu cadastro</a>
-  </div>
-</div>
+{% include '_partials/navbar.html' %}
 
 <!-- MENSAGENS GLOBAIS (fora das colunas) -->
 {% if messages %}

@@ -13,27 +13,13 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:Inter,system-ui;color:#0f172a}
 
-/* TOP BAR — com navegação */
-.top{background:linear-gradient(90deg,var(--b),var(--c));color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
-.wrap{max-width:1100px;margin:0 auto}
-.nav-link{color:#cfe8ff;text-decoration:none;font-weight:700}
-.nav-link:hover{text-decoration:underline}
-.nav-link.active{color:#fff;text-decoration:underline}
-
-/* força cor branca para esses dois */
-.nav-link.jogos,
-.nav-link.cenarios {color:#fff}
-
-.nav-link.usuarios,
-.nav-link.meucadastro {color:#cccaca}
-
 /* layout */
 .container{max-width:1100px;margin:20px auto;padding:0 20px;display:grid;gap:20px;grid-template-columns:420px 1fr}
 .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 h2{margin:0 0 10px}
-.btn{display:inline-block;background:var(--b);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
-.btn.alt{background:#0ea5e9}
-.btn.danger{background:var(--danger)}
+.btn{display:inline-block;background:var(--b);color:#fff !important;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+.btn.alt{background:#0ea5e9 !important;color:#fff !important}
+.btn.danger{background:var(--danger) !important;color:#fff !important}
 .list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow:auto}
 .item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
 .item a{color:#0f172a;text-decoration:none;font-weight:700}
@@ -46,6 +32,20 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 .subnav a{color:#0e5f9e;text-decoration:none;font-weight:700}
 .subnav a:hover{text-decoration:underline}
 .subnav .btn{color:#fff !important}
+
+/* Força cores corretas dos botões */
+button.btn, a.btn, input.btn {
+  background: var(--b) !important;
+  color: #fff !important;
+}
+button.btn.alt, a.btn.alt, input.btn.alt {
+  background: #0ea5e9 !important;
+  color: #fff !important;
+}
+button.btn.danger, a.btn.danger, input.btn.danger {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
 
 /* modal */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px}
@@ -77,20 +77,7 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
 </head>
 <body>
 
-<!-- TOP BAR com links -->
-<div class="top">
-  <div class="wrap" style="display:flex;align-items:center;gap:12px;white-space:nowrap">
-    <a href="" style="color:#fff;text-decoration:none;font-weight:800">SimulaWEB</a>
-    <span aria-hidden="true">•</span>
-    <a href="/jogo_empresa/jogos" class="nav-link jogos">Jogos</a>
-    <span aria-hidden="true">•</span>
-    <a href="#" class="nav-link usuarios" >Usuários</a>
-    <span aria-hidden="true">•</span>
-    <a href="{% url 'cenarios:home' %}" class="nav-link cenarios">Cenários</a>
-    <span aria-hidden="true">•</span>
-    <a href="#" class="nav-link meucadastro">Meu cadastro</a>
-  </div>
-</div>
+{% include '_partials/navbar.html' %}
 
 <div class="container">
   <aside class="card">
@@ -147,7 +134,7 @@ input[type="text"]{width:100%;padding:10px;border:1px solid #e5e7eb;border-radiu
           </div>
           <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:8px">
             <a href="{% url 'jogo_empresa:empresas_crud' j.id %}">Empresas</a>
-            <a href="#" title="Em breve">Usuários</a>
+            <a href="{% url 'authentication:user_management' %}?jogo={{ j.cod }}" title="Em breve">Usuários</a>
             <a class="btn" href="?edit={{ j.id }}">Editar</a>
             <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
               {% csrf_token %}
