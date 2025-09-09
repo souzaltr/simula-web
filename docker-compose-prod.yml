@@ -47,9 +47,9 @@ services:
       - nginx-proxy
 
   web:
-    image: ghcr.io/karolayneamabile/pw:latest
+    image: ghcr.io/karolayneamabile/latest
     container_name: dz01
-    command: sh -c "python manage.py migrate && gunicorn mydjango.wsgi:application --bind 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate authentication && python manage.py migrate && gunicorn mydjango.wsgi:application --bind 0.0.0.0:8000"
     depends_on:
       db:
         condition: service_healthy
