@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings  # pode continuar, mesmo sem usar, se já estiver aí
+from django.conf import settings
 from jogos.models import Jogo
 
 
@@ -21,7 +21,7 @@ class SimulacaoPeriodo(models.Model):
         (RDA, 'Reprocessar período passado'),
         (LPD, 'Liberar próximo período de decisões'),
         (CAD, 'Cancelar simulação do último período'),
-        (RSD, 'Reprocessar 0→atual, simular e liberar próximo'),  # <-- NOVA OPÇÃO
+        (RSD, 'Reprocessar 0→atual, simular e liberar próximo'),
     )
     execucao = models.ForeignKey('SimulacaoExecucao', on_delete=models.CASCADE, related_name='periodos')
     jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name='periodos')
