@@ -104,7 +104,6 @@ def _acao_RDA(jogo, execucao):
 
 
 def _acao_LPD(jogo, execucao):
-    # Só registra a liberação no período atual; não há mais campos de 'decisoes_*' no model.
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.LPD, jogo.periodo_atual, jogo.periodo_atual)
     if not jogo.status_decisoes_disponiveis:
         jogo.status_decisoes_disponiveis = True
@@ -200,4 +199,5 @@ def processar_lista(jogos_ids, acao, user=None, lote_id=None):
         )
 
     return {"lote_id": lote, "resultados": resultados}
+
 
