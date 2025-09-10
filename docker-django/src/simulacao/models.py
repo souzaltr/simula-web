@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from jogos.models import Jogo
 
-
 class SimulacaoPeriodo(models.Model):
     R0D = 'R0D'
     RND = 'RND'
