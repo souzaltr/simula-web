@@ -1,4 +1,3 @@
-# simulacao/views.py
 from django.shortcuts import render
 from django.views import View
 from django.core.paginator import Paginator
@@ -62,7 +61,6 @@ class SimulacaoView(View):
         filtro_form, jogos_filtrados, jogos_ativos = self._jogos_filtrados(request)
         form = SimularForm(request.POST, jogos_qs=jogos_ativos)
 
-        # Se o form for inválido (ex.: nenhum jogo), volta com erros
         if not form.is_valid():
             return render(request, self.template_name, {
                 "form": form,
@@ -70,7 +68,6 @@ class SimulacaoView(View):
                 "jogos": jogos_filtrados,
             })
           
-        # --- Guard extra: impedir processamento sem seleção
         jogos_sel_qs = form.cleaned_data.get("jogos")
         if not jogos_sel_qs or jogos_sel_qs.count() == 0:
             form.add_error("jogos", "Selecione ao menos um jogo.")
@@ -79,9 +76,7 @@ class SimulacaoView(View):
                 "filtro_form": filtro_form,
                 "jogos": jogos_filtrados,
             })
-        # ---------------------------------------------------
-
-        # Por segurança, garanta que todos os IDs estão dentro do queryset de ATIVOS
+            
         ids_post = set(jogos_sel_qs.values_list("id", flat=True))
         ids_ativos = set(jogos_ativos.values_list("id", flat=True))
         if not ids_post.issubset(ids_ativos):
@@ -117,7 +112,6 @@ class SimulacaoView(View):
                 "logs_count": r["logs_criados"],
             })
 
-        # Recria o form “limpo” preservando os filtros atuais
         form = SimularForm(
             jogos_qs=jogos_ativos,
             initial={
