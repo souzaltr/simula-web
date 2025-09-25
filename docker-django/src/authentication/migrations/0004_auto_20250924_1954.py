@@ -44,8 +44,7 @@ def remover_usuario_admin(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0001_initial'),
-        ('authentication', '0002_usuario'), 
+        ('authentication', '0003_auto_20250924_1953'),
     ]
 
     operations = [

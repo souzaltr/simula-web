@@ -51,13 +51,24 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 from django.db import transaction
-from .models import Usuario, Empresa
+from .models import Usuario
+
 
 class AdminUserCreationForm(UserCreationForm):
     vinculo = forms.ChoiceField(
         label="Vínculo do Usuário",
         help_text="Selecione o papel e a empresa do novo usuário.",
         required=True,
+    )
+
+    codigo_de_jogo = forms.ModelChoiceField(
+        queryset=Jogo.objects.all(),
+        to_field_name='cod',
+        required=False,
+        label="Código de Jogo",
+        widget=forms.Select(attrs={
+            'id': 'id_codigo_de_jogo_selector'
+        })
     )
 
     class Meta(UserCreationForm.Meta):
