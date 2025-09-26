@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseForbidden
+
 
 from jogos.models import Jogo
 from jogo_empresa.models import Empresa
@@ -47,7 +49,7 @@ def jogos_crud(request):
             nome = (request.POST.get('nome') or '').strip()
             cenario_id = request.POST.get('cenario_id')
 
-            jogo = Jogo(nome=nome)
+            jogo = jogo = Jogo(nome=nome, criador=request.user)
             if cenario_id:
                 jogo.cenario = get_object_or_404(Cenario, pk=cenario_id)
 
@@ -80,6 +82,9 @@ def jogos_crud(request):
         elif action == 'update':
             pk = request.POST.get('id')
             jogo = get_object_or_404(Jogo, pk=pk)
+            if request.user != jogo.criador and not request.user.is_superuser:
+                return HttpResponseForbidden("Você não tem permissão para alterar esse jogo.")
+            
             nome = (request.POST.get('nome') or jogo.nome).strip()
             jogo.nome = nome
 
@@ -103,6 +108,9 @@ def jogos_crud(request):
         elif action == 'delete':
             pk = request.POST.get('id')
             jogo = get_object_or_404(Jogo, pk=pk)
+            if request.user != jogo.criador and not request.user.is_superuser:
+                return HttpResponseForbidden("Você não tem permissão para deletar esse jogo.")
+
             jogo.delete()
             return redirect(reverse('jogo_empresa:jogos_crud'))
 
@@ -111,11 +119,12 @@ def jogos_crud(request):
             valid_ids = [int(x) for x in selecionados if str(x).isdigit()]
             if valid_ids:
                 for jogo in Jogo.objects.filter(id__in=valid_ids):
+                    if request.user != jogo.criador and not request.user.is_superuser:
+                        return HttpResponseForbidden(f"Você não tem permissão para alterar o jogo '{jogo.nome}'.")
+                    
                     jogo.status = Jogo.INATIVO if jogo.status == Jogo.ATIVO else Jogo.ATIVO
                     jogo.save()
             return redirect(reverse('jogo_empresa:jogos_crud'))
-
-        return redirect(reverse('jogo_empresa:jogos_crud'))
 
     # GET
     edit_id = request.GET.get('edit')
@@ -123,6 +132,12 @@ def jogos_crud(request):
 
     jogos, q, sort = build_jogos_queryset(request)
     cenarios = Cenario.objects.select_related('produto').order_by('nome')
+
+    if request.user.groups.filter(name='Mediador').exists() and not request.user.is_superuser:
+        jogos = jogos.filter(criador=request.user) 
+    
+        if jogo_edit and jogo_edit.criador != request.user:
+            jogo_edit = None  
 
     return render(request, 'jogos/jogos.html', {
         'jogos': jogos,
@@ -135,12 +150,15 @@ def jogos_crud(request):
 def empresas_crud(request, jogo_id):
     jogo = get_object_or_404(Jogo, pk=jogo_id)
 
+    if request.user != jogo.criador and not request.user.is_superuser:
+        return HttpResponseForbidden("Você não tem permissão para gerenciar empresas deste jogo.")
+
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
 
         if action == 'create':
             nome = (request.POST.get('nome') or '').strip()
-            empresa = Empresa(nome=nome, jogo=jogo)
+            empresa = Empresa(nome=nome, jogo=jogo, criador=request.user)
             try:
                 empresa.full_clean()
                 empresa.save()

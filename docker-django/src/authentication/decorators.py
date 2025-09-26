@@ -9,7 +9,7 @@ def group_required(group_names):
     def decorator(view_func):
         def wrapper(request, *args, **kwargs):
             if request.user.is_authenticated:
-                if request.user.groups.filter(name__in=group_names).exists():
+                if request.user.is_superuser or request.user.groups.filter(name__in=group_names).exists():
                     return view_func(request, *args, **kwargs)
 
             raise PermissionDenied

@@ -128,6 +128,7 @@ button.btn.danger, a.btn.danger, input.btn.danger {
           <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap">
             <span class="code-chip">Cód: {{ j.cod }}</span>
             <span class="badge-pill">{% if j.status == 'A' %}Ativo{% else %}Inativo{% endif %}</span>
+            <span class="badge-pill"> {{ j.num_jogador }} Jogadores</span>
           </div>
           <div style="font-size:13px;color:#64748b;margin-top:4px">
             Cenário: {{ j.cenario.nome }}
