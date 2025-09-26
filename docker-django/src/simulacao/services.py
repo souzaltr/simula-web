@@ -32,10 +32,6 @@ def _proximo_step(execucao: SimulacaoExecucao):
 
 
 def _criar_periodo(execucao, jogo, acao, periodo_de, periodo_para):
-    """
-    Cria um registro de SimulacaoPeriodo.
-    Campos 'decisoes_de'/'decisoes_para' foram removidos do model conforme solicitado.
-    """
     step = _proximo_step(execucao)
     return SimulacaoPeriodo.objects.create(
         execucao=execucao,
@@ -46,7 +42,7 @@ def _criar_periodo(execucao, jogo, acao, periodo_de, periodo_para):
         step_index=step,
     )
 
-  
+
 def _acao_R0D(jogo, execucao):
     p = jogo.periodo_atual
     for k in range(0, p):
@@ -57,35 +53,60 @@ def _acao_R0D(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-  
+
 def _acao_RND(jogo, execucao):
     p = jogo.periodo_atual
     for k in range(0, p + 1):
         _criar_periodo(execucao, jogo, SimulacaoPeriodo.RND, k, k + 1)
     jogo.periodo_atual = p + 1
-    jogo.save(update_fields=["periodo_atual"])
+    jogo.status_decisoes_disponiveis = False
+    jogo.save(update_fields=["periodo_atual", "status_decisoes_disponiveis"])
     return {
         "logs": p + 1,
         "periodo_final": jogo.periodo_atual,
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-  
+
 def _acao_SPA(jogo, execucao):
+    if not jogo.status_decisoes_disponiveis:
+        return {
+            "erro": "Você deve liberar o período primeiro.",
+            "logs": 0,
+            "periodo_final": jogo.periodo_atual,
+            "decisoes": jogo.status_decisoes_disponiveis,
+        }
+
     p = jogo.periodo_atual
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPA, p, p)
+
+    jogo.periodo_atual = p + 1
+    jogo.status_decisoes_disponiveis = False
+    jogo.save(update_fields=["periodo_atual", "status_decisoes_disponiveis"])
+
     return {
         "logs": 1,
         "periodo_final": jogo.periodo_atual,
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-  
+
 def _acao_SPN(jogo, execucao):
+    if not jogo.status_decisoes_disponiveis:
+        return {
+            "erro": "Você deve liberar o período primeiro.",
+            "logs": 0,
+            "periodo_final": jogo.periodo_atual,
+            "decisoes": jogo.status_decisoes_disponiveis,
+        }
+
     p = jogo.periodo_atual
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPN, p, p + 1)
+
     jogo.periodo_atual = p + 1
-    jogo.save(update_fields=["periodo_atual"])
+    jogo.status_decisoes_disponiveis = True
+    jogo.save(update_fields=["periodo_atual", "status_decisoes_disponiveis"])
+
     return {
         "logs": 1,
         "periodo_final": jogo.periodo_atual,
@@ -114,7 +135,7 @@ def _acao_LPD(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
-  
+
 def _acao_CAD(jogo, execucao):
     p = jogo.periodo_atual
     novo = max(0, p - 1)
@@ -128,15 +149,16 @@ def _acao_CAD(jogo, execucao):
         "decisoes": jogo.status_decisoes_disponiveis,
     }
 
+
 def _acao_RSD(jogo, execucao):
     p = jogo.periodo_atual
-
     for k in range(0, p):
         _criar_periodo(execucao, jogo, SimulacaoPeriodo.R0D, k, k + 1)
 
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.SPN, p, p + 1)
     jogo.periodo_atual = p + 1
-    jogo.save(update_fields=["periodo_atual"])
+    jogo.status_decisoes_disponiveis = False
+    jogo.save(update_fields=["periodo_atual", "status_decisoes_disponiveis"])
 
     _criar_periodo(execucao, jogo, SimulacaoPeriodo.LPD, jogo.periodo_atual, jogo.periodo_atual)
     if not jogo.status_decisoes_disponiveis:
@@ -149,7 +171,8 @@ def _acao_RSD(jogo, execucao):
         "periodo_final": jogo.periodo_atual,
         "decisoes": jogo.status_decisoes_disponiveis,
     }
-  
+
+
 _FUNCS = {
     SimulacaoPeriodo.R0D: _acao_R0D,
     SimulacaoPeriodo.RND: _acao_RND,
@@ -160,6 +183,7 @@ _FUNCS = {
     SimulacaoPeriodo.CAD: _acao_CAD,
     SimulacaoPeriodo.RSD: _acao_RSD,
 }
+
 
 @transaction.atomic
 def processar_lista(jogos_ids, acao, user=None, lote_id=None):
@@ -195,6 +219,7 @@ def processar_lista(jogos_ids, acao, user=None, lote_id=None):
                 "decisoes_antes": antes_dec,
                 "decisoes_depois": info["decisoes"],
                 "logs_criados": info["logs"],
+                "erro": info.get("erro", ""),
             }
         )
 

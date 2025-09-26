@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import random
+from django.conf import settings
+
 
 class Jogo(models.Model):
     ATIVO, INATIVO = 'A', 'I'
@@ -13,6 +15,7 @@ class Jogo(models.Model):
     periodo_anterior = models.PositiveIntegerField(default=0)
     periodo_atual = models.PositiveIntegerField(default=0)
     status_decisoes_disponiveis = models.BooleanField(default=False)
+    criador = models.ForeignKey(settings.AUTH_USER_MODEL, editable=False, on_delete=models.CASCADE, related_name='jogos_criados')
 
     def gerar_codigo(self):
         while True:
@@ -26,6 +29,14 @@ class Jogo(models.Model):
         
         if not self.cenario_id:
             raise ValidationError({"cenario": "Selecione um cenário para criar o jogo."})
+        
+        if self.pk:
+            try:
+                original = Jogo.objects.get(pk=self.pk)
+            except Jogo.DoesNotExist:
+                original = None
+            if original and original.criador != self.criador:
+                raise ValidationError({'criador': "O criador do jogo não pode ser alterado."})
 
     @property
     def num_jogador(self):
