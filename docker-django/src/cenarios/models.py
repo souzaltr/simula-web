@@ -18,6 +18,7 @@ class Insumo(models.Model):
     fornecedor = models.CharField(max_length=100,)
     forma_pagamento = models.CharField(max_length=25, choices=FormasPagamento, null=True,blank=True,default="avista")
     quantidade = models.PositiveIntegerField(null=True,blank=True,default=0)
+    #fk de um mediador criador
 
     def __str__(self):
         return f"{self.nome} - Fornecedor -> {self.fornecedor}"
