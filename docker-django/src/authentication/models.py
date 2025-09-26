@@ -3,10 +3,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
-from jogos.models import Jogo
-from jogo_empresa.models import Empresa
-
 def validate_cpf(value):
     cpf = re.sub(r'\D', '', value)
 
@@ -19,6 +15,30 @@ def validate_cpf(value):
     if re.match(r'(\d)\1{10}', cpf):
         raise ValidationError(
             _('CPF com todos os dígitos iguais não é válido.'),
+            params={'value': value},
+        )
+        
+    # Primeira etapa de validação
+    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
+    digito1 = (soma * 10) % 11
+    if digito1 == 10:
+        digito1 = 0
+        
+    if str(digito1) != cpf[9]:
+        raise ValidationError(
+            _('%(value)s não é um CPF válido.'),
+            params={'value': value},
+        )
+        
+    # Segunda etapa de validação
+    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
+    digito2 = (soma * 10) % 11
+    if digito2 == 10:
+        digito2 = 0
+        
+    if str(digito2) != cpf[10]:
+        raise ValidationError(
+            _('%(value)s não é um CPF válido.'),
             params={'value': value},
         )
 
@@ -37,14 +57,14 @@ class Usuario(AbstractUser):
     )
     
     empresa = models.ForeignKey(
-        Empresa, 
+        'jogo_empresa.Empresa', 
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
     
     codigo_de_jogo = models.ForeignKey(
-        Jogo,
+        'jogos.Jogo',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

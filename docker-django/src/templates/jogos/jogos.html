@@ -134,7 +134,7 @@ button.btn.danger, a.btn.danger, input.btn.danger {
           </div>
           <div class="subnav" style="display:flex;gap:12px;align-items:center;margin-top:8px">
             <a href="{% url 'jogo_empresa:empresas_crud' j.id %}">Empresas</a>
-            <a href="{% url 'authentication:user_management' %}?jogo={{ j.cod }}" title="Em breve">Usuários</a>
+            <a href="{% url 'authentication:user_management' %}?jogo={{ j.cod }}&filter=users_in_game" title="Em breve">Usuários</a>
             <a class="btn" href="?edit={{ j.id }}">Editar</a>
             <form method="post" onsubmit="return confirm('Excluir o jogo **{{ j.nome }}**?');" style="margin:0">
               {% csrf_token %}

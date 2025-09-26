@@ -80,16 +80,22 @@ def register_view(request):
 
 @group_required(['Mediador'])
 def user_management_view(request):
+    # MUDANÇA COMEÇA AQUI ------------------------------------------------------------------------------------------------------------------------
     codigo_jogo_str = request.GET.get('jogo', None)
     search_query = request.GET.get('q', None)
+    filter_option = request.GET.get('filter', None)
+
+    other_game_code = request.GET.get('other_game_code', None)
+    all_games = Jogo.objects.all().order_by('nome')
+    # MUDANÇA TERMINA AQUI ------------------------------------------------------------------------------------------------------------------------
     jogo_selecionado = None
 
+    # Verifica se o usuário logado é um mediador.
     usuario = request.user
     is_mediador = False
-    if usuario.is_authenticated:
-        is_mediador = usuario.groups.filter(name="Mediador").exists()
+    if usuario.is_authenticated: is_mediador = usuario.groups.filter(name="Mediador").exists()
 
-    # --- JOGO SELECIONADO (esta lógica é usada tanto no GET quanto no POST) ---
+    # Baseado no Query-Param 'jogo' pega o jogo no banco de dados.
     if codigo_jogo_str:
         try:
             jogo_selecionado = Jogo.objects.get(cod=codigo_jogo_str)
@@ -98,17 +104,15 @@ def user_management_view(request):
 
     # --- FORMULÁRIO ---
     if request.method == "POST":
-        # --- INÍCIO DA CORREÇÃO ---
-        post_data = request.POST.copy() # Cria uma cópia mutável do POST
+        post_data = request.POST.copy()
 
         # Se um jogo foi pré-selecionado pela URL, seu valor não veio no POST.
-        # Nós o adicionamos de volta aqui.
+        # Usa o jogo do query-param ao invés do selecionado.
         if jogo_selecionado:
-            post_data['codigo_de_jogo'] = jogo_selecionado.pk
+            post_data['codigo_de_jogo'] = jogo_selecionado.cod
 
         # Instancia o formulário com os dados completos (incluindo o jogo)
         form = AdminUserCreationForm(post_data)
-        # --- FIM DA CORREÇÃO ---
         
         if form.is_valid():
             form.save()
@@ -120,19 +124,41 @@ def user_management_view(request):
             return redirect(url)
         else:
             messages.error(request, "Erro ao criar o usuário. Por favor, corrija os campos.")
+
     else: # GET
         initial_data = {}
-        if jogo_selecionado:
-            initial_data['codigo_de_jogo'] = jogo_selecionado.pk
-        form = AdminUserCreationForm(initial=initial_data)
-        if jogo_selecionado is not None:
-            form.fields['codigo_de_jogo'].widget.attrs['disabled'] = True
 
-    # --- LISTA DE USUÁRIOS ---
+        # Basicamente seleciona no SELECT o jogo que está no Query-Param.
+        if jogo_selecionado:
+            initial_data['codigo_de_jogo'] = jogo_selecionado.cod
+
+        form = AdminUserCreationForm(initial=initial_data)
+
+    # MUDANÇA COMEÇA AQUI ------------------------------------------------------------------------------------------------------------------------
     lista_de_usuarios = Usuario.objects.all().order_by('username')
 
-    if jogo_selecionado:
-        lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo=jogo_selecionado)
+    if filter_option:
+        if filter_option == 'users_in_game':
+            if jogo_selecionado:
+                lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo=jogo_selecionado)
+            else:
+                messages.warning(request, f"Nenhum Jogo Selecionado.")
+                lista_de_usuarios = []
+
+        elif filter_option == 'users_to_add_to_game':
+            lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo__isnull=True)
+
+        elif filter_option == 'users_in_other_games':
+            if other_game_code:
+                try:
+                    other_game_obj = Jogo.objects.get(cod=other_game_code)
+                    lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo=other_game_obj)
+                except Jogo.DoesNotExist:
+                    messages.warning(request, f"O jogo com código '{other_game_code}' para o filtro não foi encontrado.")
+            elif jogo_selecionado:
+                lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo__isnull=False).exclude(codigo_de_jogo=jogo_selecionado)
+            else:
+                lista_de_usuarios = lista_de_usuarios.filter(codigo_de_jogo__isnull=False)
 
     if search_query:
         lista_de_usuarios = lista_de_usuarios.filter(
@@ -140,6 +166,12 @@ def user_management_view(request):
             Q(email__icontains=search_query) |
             Q(cpf__icontains=search_query)
         )
+
+    query_dict = request.GET.copy()
+    if 'page' in query_dict:
+        del query_dict['page']
+    pagination_query_params = query_dict.urlencode()
+    # MUDANÇA TERMINA AQUI ------------------------------------------------------------------------------------------------------------------------
 
     # --- PAGINAÇÃO ---
     paginator = Paginator(lista_de_usuarios, 10)
@@ -151,9 +183,14 @@ def user_management_view(request):
         'form': form,
         'page_obj': page_obj,
         'jogo_selecionado': jogo_selecionado,
+        # MUDANÇA COMEÇA AQUI ------------------------------------------------------------------------------------------------------------------------
         'search_query': search_query,
-        'is_general': jogo_selecionado is None,
-        'is_mediador': is_mediador
+        'is_general': True,
+        'is_mediador': is_mediador,
+        'pagination_query_params': pagination_query_params,
+        'all_games': all_games,
+        'other_game_code': other_game_code,
+        # MUDANÇA TERMINA AQUI ------------------------------------------------------------------------------------------------------------------------
     }
     return render(request, "users/user_management.html", context)
 
