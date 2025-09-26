@@ -1,13 +1,15 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from .models import Insumo,Cenario,Produto 
 from .forms import InsumoForm,ProdutoForm,CenarioForm
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.contrib import messages
 from jogos.models import Jogo
+from django.db.models import Q
 
 from authentication.decorators import group_required
 
-#lógica dos CRUDs em uma unica função da view
+
+# filtragem na tela principal 
 @group_required(['Mediador'])
 def build_insumos_queryset(request):
     q = (request.GET.get("q_insumo")or"").strip()
@@ -16,7 +18,7 @@ def build_insumos_queryset(request):
     qs = Insumo.objects.all()
 
     if q:
-        qs=qs.filter(nome__icontains=q)
+        qs=qs.filter(Q(nome__icontains=q) | Q(fornecedor__icontains=q)) # busca pelo nome do insuno e do fornecedor
 
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q, sort
@@ -29,7 +31,7 @@ def build_produtos_queryset(request):
     qs = Produto.objects.all()
 
     if q:
-        qs=qs.filter(nome__icontains=q)
+        qs=qs.filter(Q(nome__icontains=q) | Q(insumos__nome__icontains=q) | Q(insumos__fornecedor__icontains=q))
 
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q ,sort
@@ -41,7 +43,7 @@ def build_cenarios_queryset(request):
     qs = Cenario.objects.all()
 
     if q: 
-        qs=qs.filter(nome__icontains=q)
+        qs=qs.filter(Q(nome__icontains=q) | Q(produto__nome__icontains=q) )
 
     order = "nome" if sort == "asc" else "-nome"
     return qs.order_by(order), q, sort

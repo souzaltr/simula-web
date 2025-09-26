@@ -77,7 +77,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
     <div class="toolbar">
       <form class="search" method="get">
         <span aria-hidden="true">🔎</span>
-        <input type="text" name="q_insumo" value="{{ q_insumo|default:'' }}" placeholder="Busque um insumo.">
+        <input type="text" name="q_insumo" value="{{ q_insumo|default:'' }}" placeholder="Busque um insumo pelo nome ou forncedor.">
         <input type="hidden" name="sort_insumo" value="{{ sort_insumo|default:'asc' }}">
         <button class="btn alt" type="submit">Filtrar</button>
       </form>
@@ -126,7 +126,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
         <div class="toolbar">
       <form class="search" method="get">
         <span aria-hidden="true">🔎</span>
-        <input type="text" name="q_produto" value="{{ q_produto|default:'' }}" placeholder="Busque um produto.">
+        <input type="text" name="q_produto" value="{{ q_produto|default:'' }}" placeholder="Busque um produto pelo nome ou insumos.">
         <input type="hidden" name="sort_produto" value="{{ sort_produto|default:'asc' }}">
         <button class="btn alt" type="submit">Filtrar</button>
       </form>
@@ -180,7 +180,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
         <div class="toolbar">
       <form class="search" method="get">
         <span aria-hidden="true">🔎</span>
-        <input type="text" name="q_cenario" value="{{ q_cenario|default:'' }}" placeholder="Busque um Cenario.">
+        <input type="text" name="q_cenario" value="{{ q_cenario|default:'' }}" placeholder="Busque um Cenário pelo nome ou produto.">
         <input type="hidden" name="sort_cenario" value="{{ sort_cenario|default:'asc' }}">
         <button class="btn alt" type="submit">Filtrar</button>
       </form>
