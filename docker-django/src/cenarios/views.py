@@ -9,7 +9,7 @@ from django.db.models import Q
 from authentication.decorators import group_required
 
 
-# filtragem na tela principal 
+# filtragem/busca na tela principal 
 @group_required(['Mediador'])
 def build_insumos_queryset(request):
     q = (request.GET.get("q_insumo")or"").strip()
@@ -49,7 +49,7 @@ def build_cenarios_queryset(request):
     return qs.order_by(order), q, sort
     
 
-#lógica dos CRUDs em uma unica função da view
+#lógica de criação em uma unica função da view
 @group_required(['Mediador'])
 def cenarios_view(request:HttpRequest):
 
@@ -107,6 +107,10 @@ def cenarios_view(request:HttpRequest):
     insumos, q_insumo, sort_insumo = build_insumos_queryset(request)
     cenarios, q_cenario, sort_cenario = build_cenarios_queryset(request)
     produtos,q_produto,sort_produto = build_produtos_queryset(request)
+    #filtragem dos itens em jogos ativos 
+    cenariosAtivos = cenarios.filter(jogos__status='A').distinct()
+    produtosAtivos = produtos.filter(cenarios__jogos__status='A').distinct()
+    insumosAtivos = insumos.filter(produtos__cenarios__jogos__status='A').distinct()
     contexto = { 
         "insumos": insumos,
         "cenarios": cenarios,
@@ -119,11 +123,15 @@ def cenarios_view(request:HttpRequest):
         "q_cenario": q_cenario,
         "sort_insumo": sort_insumo,
         "sort_produto": sort_produto,
-        "sort_cenario": sort_cenario
+        "sort_cenario": sort_cenario,
+        "cenarios_ativos" : cenariosAtivos,
+        "produtos_ativos" : produtosAtivos,
+        "insumos_ativos" : insumosAtivos
     }
                       
     return render(request,'cenarios/cenarios.html',contexto)
 
+#lógica remover
 @group_required(['Mediador'])
 def removerInsumo(request:HttpRequest,id):
     ## remover insumo só se nao tiver produto e um cenario relacionado a ele
@@ -163,6 +171,7 @@ def removerCenario(request:HttpRequest,id):
         messages.success(request,"Cenário Deletado com sucesso")
     return redirect("cenarios:home")
 
+#lógica editar
 @group_required(['Mediador'])
 def editarInsumo(request:HttpRequest, id):
     insumo = get_object_or_404(Insumo,id=id)
@@ -174,12 +183,22 @@ def editarInsumo(request:HttpRequest, id):
             return redirect("cenarios:home")
         else:
             messages.success(request,"Erro ao atualizar insumo!")
+
     formInsumo = InsumoForm(instance=insumo)
+    cenarios = Cenario.objects.all()
+    insumos = Insumo.objects.all()
+    produtos = Produto.objects.all()
+    cenariosAtivos = cenarios.filter(jogos__status='A').distinct()
+    produtosAtivos = produtos.filter(cenarios__jogos__status='A').distinct()
+    insumosAtivos = insumos.filter(produtos__cenarios__jogos__status='A').distinct()
     contexto = { 
         'insumo_form':formInsumo,
         "insumos": Insumo.objects.all(),
         "cenarios": Cenario.objects.all(),
         "produtos": Produto.objects.all(),
+        "cenarios_ativos" : cenariosAtivos,
+        "produtos_ativos" : produtosAtivos,
+        "insumos_ativos" : insumosAtivos
         }
     
     return render(request, 'cenarios/cenarios.html',contexto)
@@ -196,11 +215,20 @@ def editarProduto(request:HttpRequest, id):
         else:
             messages.error(request,"Erro ao atualizar Produto!")
     formProduto = ProdutoForm(instance=produto)
+    cenarios = Cenario.objects.all()
+    insumos = Insumo.objects.all()
+    produtos = Produto.objects.all()
+    cenariosAtivos = cenarios.filter(jogos__status='A').distinct()
+    produtosAtivos = produtos.filter(cenarios__jogos__status='A').distinct()
+    insumosAtivos = insumos.filter(produtos__cenarios__jogos__status='A').distinct()
     contexto = {
         'produto_form' : formProduto,
         "insumos": Insumo.objects.all(),
         "cenarios": Cenario.objects.all(),
         "produtos": Produto.objects.all(),
+        "cenarios_ativos" : cenariosAtivos,
+        "produtos_ativos" : produtosAtivos,
+        "insumos_ativos" : insumosAtivos
     }
 
     return render(request, 'cenarios/cenarios.html',contexto)
@@ -217,11 +245,20 @@ def editarCenario(request:HttpRequest, id):
         else:
             messages.error(request,"Erro ao editar Cenário!")
     formCenario = CenarioForm(instance=cenario)
+    cenarios = Cenario.objects.all()
+    insumos = Insumo.objects.all()
+    produtos = Produto.objects.all()
+    cenariosAtivos = cenarios.filter(jogos__status='A').distinct()
+    produtosAtivos = produtos.filter(cenarios__jogos__status='A').distinct()
+    insumosAtivos = insumos.filter(produtos__cenarios__jogos__status='A').distinct()
     contexto = {
         'cenario_form' : formCenario,
         "insumos": Insumo.objects.all(),
         "cenarios": Cenario.objects.all(),
         "produtos": Produto.objects.all(),
+        "cenarios_ativos" : cenariosAtivos,
+        "produtos_ativos" : produtosAtivos,
+        "insumos_ativos" : insumosAtivos
     }
     return render(request, 'cenarios/cenarios.html',contexto)
 

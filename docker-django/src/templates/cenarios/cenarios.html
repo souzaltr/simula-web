@@ -222,5 +222,82 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
     </form>
   </section>
 </div>
+<div style="max-width: 800px; margin: 20px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    <section class="card" style="border-radius: 12px; padding: 20px; background-color: #fff;">
+        <h1 style="border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; text-align: center;">
+            Itens em Jogos Ativos
+        </h1>
+
+        <!-- Insumos Ativos -->
+        <div class="list-head" style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+            <h3>Insumos:</h3>
+            <a class="btn alt" href="?sort_insumo={% if sort_insumo == 'asc' %}desc{% else %}asc{% endif %}" title="Ordenar por nome">
+                Ordenar Nomes
+                <span>{% if sort_insumo == 'asc' %}▲{% else %}▼{% endif %}</span>
+            </a>
+        </div>
+        <div class="list">
+            {% for insumo in insumos_ativos %}
+                <div class="item">
+                    <div style="flex:1">
+                        <div style="font-weight:700">{{ insumo.nome }}</div>
+                        <small>{% if insumo.fornecedor %}Fornecedor: {{ insumo.fornecedor }}{% endif %}</small>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="item"><small>Nenhum insumo encontrado em jogos ativos.</small></div>
+            {% endfor %}
+        </div>
+
+        <!-- Produtos Ativos -->
+        <div class="list-head" style="display:flex; justify-content: space-between; align-items:center; margin-top:20px;">
+            <h3>Produtos:</h3>
+            <a class="btn alt" href="?sort_produto={% if sort_produto == 'asc' %}desc{% else %}asc{% endif %}" title="Ordenar por nome">
+                Ordenar Nomes
+                <span>{% if sort_produto == 'asc' %}▲{% else %}▼{% endif %}</span>
+            </a>
+        </div>
+        <div class="list">
+            {% for produto in produtos_ativos %}
+                <div class="item">
+                    <div style="flex:1">
+                        <div style="font-weight:700">{{ produto.nome }}</div>
+                        <small>Insumos:
+                            {% for insumo in produto.insumos.all %}
+                                <span class="code-chip">{{ insumo.nome }}</span>{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                nenhum
+                            {% endfor %}
+                        </small>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="item"><small>Nenhum produto encontrado em jogos ativos.</small></div>
+            {% endfor %}
+        </div>
+
+        <!-- Cenários Ativos -->
+        <div class="list-head" style="display:flex; justify-content: space-between; align-items:center; margin-top:20px;">
+            <h3>Cenários:</h3>
+            <a class="btn alt" href="?sort_cenario={% if sort_cenario == 'asc' %}desc{% else %}asc{% endif %}" title="Ordenar por nome">
+                Ordenar Nomes
+                <span>{% if sort_cenario == 'asc' %}▲{% else %}▼{% endif %}</span>
+            </a>
+        </div>
+        <div class="list">
+            {% for cenario in cenarios_ativos %}
+                <div class="item">
+                    <div style="flex:1">
+                        <div style="font-weight:700">{{ cenario.nome }}</div>
+                        <small>Produto: {{ cenario.produto.nome }}</small>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="item"><small>Nenhum cenário encontrado em jogos ativos.</small></div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+</div>
 </body>
 </html>
