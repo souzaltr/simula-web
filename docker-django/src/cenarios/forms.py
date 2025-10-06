@@ -39,6 +39,15 @@ class ProdutoForm(forms.ModelForm):
              'required' : "É necessário selecionar ao menos um insumo!"
          } 
         }
+
+    def __init__(self, *args, **kwargs):
+        
+        usuario = kwargs.pop('usuario', None)
+        super().__init__(*args, **kwargs)
+        
+        if usuario:
+            
+            self.fields['insumos'].queryset = Insumo.objects.filter(criador=usuario)
         
 class CenarioForm(forms.ModelForm):
     class Meta:
@@ -60,3 +69,12 @@ class CenarioForm(forms.ModelForm):
                 'required': "É necessário ter um produto para criar um Cenário",
             }
         }
+
+    def __init__(self, *args, **kwargs):
+        
+        usuario = kwargs.pop('usuario', None)
+        super().__init__(*args, **kwargs)
+        
+        if usuario:
+            
+            self.fields['produto'].queryset = Produto.objects.filter(criador=usuario)

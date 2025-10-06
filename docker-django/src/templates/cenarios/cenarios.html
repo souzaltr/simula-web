@@ -99,7 +99,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
         <div class="item">
           <div style="flex:1">
             <div style="font-weight:700">{{ insumo.nome }}</div>
-            <small>Fornecedor: {{ insumo.fornecedor }}</small>
+            <small>Fornecedor: <span class="code-chip">{{ insumo.fornecedor }}</span></small>
           </div>
           <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="{% url 'cenarios:editarInsumo' insumo.id %}" class="alt">Editar</a>
@@ -201,7 +201,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
         <div class="item">
           <div style="flex:1">
             <div style="font-weight:700">{{ cenario.nome }}</div>
-            <small>Produto: {{ cenario.produto.nome }}</small>
+            <small>Produto: <span class="code-chip">{{ cenario.produto.nome }}</span></small>
           </div>
           <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="{% url 'cenarios:editarCenario' cenario.id %}" class="alt">Editar</a>
@@ -241,7 +241,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
                 <div class="item">
                     <div style="flex:1">
                         <div style="font-weight:700">{{ insumo.nome }}</div>
-                        <small>{% if insumo.fornecedor %}Fornecedor: {{ insumo.fornecedor }}{% endif %}</small>
+                        <small>{% if insumo.fornecedor %}Fornecedor: <span class="code-chip">{{ insumo.fornecedor }}</span>{% endif %}</small>
                     </div>
                 </div>
             {% empty %}
@@ -289,7 +289,7 @@ input[type="text"], select{width:100%;padding:10px;border:1px solid #e5e7eb;bord
                 <div class="item">
                     <div style="flex:1">
                         <div style="font-weight:700">{{ cenario.nome }}</div>
-                        <small>Produto: {{ cenario.produto.nome }}</small>
+                        <small>Produto: <span class="code-chip">{{ cenario.produto.nome }}</span></small>
                     </div>
                 </div>
             {% empty %}
