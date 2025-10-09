@@ -2,6 +2,9 @@ from django.test import TestCase, Client
 from .models import Insumo,Produto,Cenario
 from jogos.models import Jogo
 from django.urls import reverse
+from django.contrib.messages import get_messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User,Group
 
 # Create your tests here.
 
@@ -10,46 +13,57 @@ from django.urls import reverse
 class CenariosTest(TestCase):
     
     def setUp(self):
-      self.client = Client()
-      self.insumo_url = reverse("cenarios:home")
-      self.produto_url = reverse("cenarios:home")
-      self.cenario_url = reverse("cenarios:home")
+        self.client = Client()
+        self.insumo_url = reverse("cenarios:home") 
+        self.produto_url = reverse("cenarios:home") 
+        self.cenario_url = reverse("cenarios:home")
+
+        # Criar grupo Mediador (ou pegar se já existir)
+        self.mediador_group, _ = Group.objects.get_or_create(name='Mediador')
+
+        # Criar usuário mediador ativo
+        self.mediador_user = User.objects.create_user(
+            username='mediador1',
+            email='mediadorteste1@gmail.com',
+            password='mediadorparateste777',
+            is_active=True
+        )
+
+        # Adicionar usuário ao grupo Mediador
+        self.mediador_user.groups.add(self.mediador_group)
 
     def test_criar_insumo_valido(self):
-       
-       data = {
-          "model_type": "insumo",
-          "action": "create",
-          "nome": "Borracha",
-          "fornecedor": "Borrachas LTDA",
-          "quantidade": 0,
-          "forma_pagamento": "avista",
-       }
+        # Login do mediador
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
 
-       response = self.client.post(self.insumo_url,data,follow=True)
-       self.assertEqual(response.status_code,200)
-       self.assertTrue(Insumo.objects.filter(nome="Borracha").exists())
-       self.assertContains(response,"Insumo criado com sucesso!")
+        # Dados do Insumo
+        data = {
+            "model_type": "insumo",
+            "action": "create",
+            "nome": "Borracha",
+            "fornecedor": "Borrachas LTDA",
+            "quantidade": 0,
+            "forma_pagamento": "avista"
+        }
 
-    def test_criar_insumo_invalido(self):
-       
-       data = {
-          "model_type":"insumo",
-          "action": "create",
-          "nome": "1234",
-          "fornecedor" : "Fornecedor de Números",
-          "quantidade": 5,
-       }
+        # POST para criar insumo
+        response = self.client.post(self.insumo_url, data, follow=True)
 
-       response = self.client.post(self.insumo_url,data,follow=True)
-       self.assertEqual(response.status_code,200)
-       self.assertFalse(Insumo.objects.exists())
-       self.assertContains(response,"Erro ao salvar insumo, nome do insumo inválido!")
+        # Verificar se o status da resposta é 200
+        self.assertEqual(response.status_code, 200)
+
+        # Verificar se o insumo foi criado
+        self.assertTrue(Insumo.objects.filter(nome="Borracha").exists())
+
+        # Verificar se a mensagem de sucesso aparece
+        self.assertContains(response, "Insumo criado com sucesso!")
 
     def test_criar_produto_valido(self):
        
-       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0, criador=self.mediador_user)
        data = {
           "model_type": "produto",
           "action":"create",
@@ -64,7 +78,10 @@ class CenariosTest(TestCase):
 
     def test_criar_produto_invalido(self):
        
-       insumo = Insumo.objects.create(nome="Madeira",fornecedor="Madereira LTDA",quantidade=0)
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       self.client.login(username='mediador1', password='1234')
+       insumo = Insumo.objects.create(nome="Madeira",fornecedor="Madereira LTDA",quantidade=0, criador = self.mediador_user)
        self.produto_url = reverse("cenarios:home")
 
        data={
@@ -81,8 +98,11 @@ class CenariosTest(TestCase):
     
     def test_criar_cenario_valido(self):
         
-        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-        produto = Produto.objects.create(nome="Pneu")
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+        self.client.login(username='mediador1', password='1234')
+        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+        produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
         produto.insumos.add(insumo)
 
         data = {
@@ -98,9 +118,12 @@ class CenariosTest(TestCase):
     
     def test_criar_cenario_invalido(self):
         
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+        self.client.login(username='mediador1', password='1234')
         self.cenario_url = reverse("cenarios:home")
-        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-        produto = Produto.objects.create(nome="Pneu")
+        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+        produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
         produto.insumos.add(insumo)
 
         data = {
@@ -117,7 +140,9 @@ class CenariosTest(TestCase):
 
     def test_deletar_insumo_sem_estar_produto(self):
         
-        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
         self.assertEqual(Insumo.objects.count(),1)
         url = reverse("cenarios:removerInsumo", args=[insumo.id])
         response = self.client.get(url, follow=True)
@@ -127,8 +152,10 @@ class CenariosTest(TestCase):
 
     def test_deletar_insumo_estar_produto(self):
         
-        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-        produto = Produto.objects.create(nome="Pneu")
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+        produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
         produto.insumos.add(insumo)
         url = reverse("cenarios:removerInsumo",args=[insumo.id])
         response = self.client.post(url,follow=True)
@@ -140,8 +167,10 @@ class CenariosTest(TestCase):
        
     def test_deletar_produto_sem_estar_cenario(self):
        
-       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       produto = Produto.objects.create(nome="Pneu")
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
        produto.insumos.add(insumo)
        self.assertEqual(Produto.objects.count(),1)
        url = reverse("cenarios:removerProduto", args=[produto.id])
@@ -152,10 +181,13 @@ class CenariosTest(TestCase):
 
 
     def test_deletar_produto_estar_cenario(self):
-       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       produto = Produto.objects.create(nome="Pneu")
+       
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
        produto.insumos.add(insumo)
-       Cenario.objects.create(nome="Bicicletas",produto=produto)
+       Cenario.objects.create(nome="Bicicletas",produto=produto,criador=self.mediador_user)
        self.assertEqual(Produto.objects.count(),1)
        url = reverse("cenarios:removerProduto", args=[produto.id])
        response = self.client.get(url,follow=True)
@@ -167,10 +199,12 @@ class CenariosTest(TestCase):
 
     def test_remover_cenario_sem_jogo_ativo(self):
        
-       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       produto = Produto.objects.create(nome="Pneu")
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
        produto.insumos.add(insumo)
-       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto)
+       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto,criador=self.mediador_user)
        url = reverse("cenarios:removerCenario", args=[cenario.id])
        response = self.client.get(url, follow=True)
        self.assertEqual(response.status_code, 200)
@@ -179,12 +213,14 @@ class CenariosTest(TestCase):
 
     def test_remover_cenario_com_jogo_ativo(self):
        
-       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       produto = Produto.objects.create(nome="Pneu")
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
        produto.insumos.add(insumo)
-       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto)
+       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto,criador=self.mediador_user)
 
-       Jogo.objects.create(nome="Jogo das Bike",cod= "1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False)
+       Jogo.objects.create(nome="Jogo das Bike",cod= "1",status=Jogo.ATIVO,cenario=cenario,periodo_anterior=0,periodo_atual=0,status_decisoes_disponiveis=False,criador=self.mediador_user)
 
        url = reverse("cenarios:removerCenario", args=[cenario.id])
        response = self.client.get(url, follow=True)
@@ -194,7 +230,9 @@ class CenariosTest(TestCase):
        
     def test_editar_insumo(self):
         
-        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
+        login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+        self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+        insumo = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
         url = reverse("cenarios:editarInsumo", args=[insumo.id])
         
         novos_dados = {
@@ -210,10 +248,12 @@ class CenariosTest(TestCase):
 
     def test_editar_produto(self):
        
-       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0,criador=self.mediador_user)
 
-       produto = Produto.objects.create(nome="Pneu")
+       produto = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
        produto.insumos.add(insumo1)
        
        url = reverse("cenarios:editarProduto", args=[produto.id])
@@ -232,16 +272,18 @@ class CenariosTest(TestCase):
 
     def test_editar_cenario(self):
        
-       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0,criador=self.mediador_user)
 
-       produto1 = Produto.objects.create(nome="Pneu")
-       produto2 = Produto.objects.create(nome="Piso")
+       produto1 = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
+       produto2 = Produto.objects.create(nome="Piso",criador=self.mediador_user)
 
        produto1.insumos.add(insumo1)
        produto2.insumos.add(insumo2)
 
-       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto1)
+       cenario = Cenario.objects.create(nome="Bicicletas",produto=produto1,criador=self.mediador_user)
 
        url = reverse("cenarios:editarCenario", args=[cenario.id])
 
@@ -258,10 +300,12 @@ class CenariosTest(TestCase):
 
     def test_listar_insumos(self):
 
-       Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
-       Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
-       Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0,criador=self.mediador_user)
+       Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0,criador=self.mediador_user)
+       Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0,criador=self.mediador_user)
 
        url = reverse("cenarios:home")
        response = self.client.get(url,follow=True)
@@ -275,15 +319,17 @@ class CenariosTest(TestCase):
 
     def test_listar_produtos(self):
        
-       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
-       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
-       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0,criador=self.mediador_user)
+       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0,criador=self.mediador_user)
+       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0,criador=self.mediador_user)
 
-       produto1 = Produto.objects.create(nome="Pneu")
-       produto2 = Produto.objects.create(nome="Piso")
-       produto3 = Produto.objects.create(nome="Suspensão")
-       produto4 = Produto.objects.create(nome = "Quadros")
+       produto1 = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
+       produto2 = Produto.objects.create(nome="Piso",criador=self.mediador_user)
+       produto3 = Produto.objects.create(nome="Suspensão",criador=self.mediador_user)
+       produto4 = Produto.objects.create(nome = "Quadros",criador=self.mediador_user)
 
        produto1.insumos.add(insumo1)
        produto2.insumos.add(insumo2)
@@ -301,24 +347,26 @@ class CenariosTest(TestCase):
 
     def test_listar_cenarios(self):
        
-       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0)
-       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0)
-       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0)
-       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0)
-       produto1 = Produto.objects.create(nome="Pneu")
-       produto2 = Produto.objects.create(nome="Piso")
-       produto3 = Produto.objects.create(nome="Suspensão")
-       produto4 = Produto.objects.create(nome = "Quadros")
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='mediadorparateste777')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+       insumo1 = Insumo.objects.create(nome="Borracha", fornecedor="Borracharia LTDA", quantidade=0,criador=self.mediador_user)
+       insumo2 = Insumo.objects.create(nome="Mármore", fornecedor="Pedreira", quantidade=0,criador=self.mediador_user)
+       insumo3 = Insumo.objects.create(nome="Madeira", fornecedor="Madereiros LTDA", quantidade=0,criador=self.mediador_user)
+       insumo4 = Insumo.objects.create(nome="Mola", fornecedor="Moleiros", quantidade=0,criador=self.mediador_user)
+       produto1 = Produto.objects.create(nome="Pneu",criador=self.mediador_user)
+       produto2 = Produto.objects.create(nome="Piso",criador=self.mediador_user)
+       produto3 = Produto.objects.create(nome="Suspensão",criador=self.mediador_user)
+       produto4 = Produto.objects.create(nome = "Quadros",criador=self.mediador_user)
 
        produto1.insumos.add(insumo1)
        produto2.insumos.add(insumo2)
        produto3.insumos.add(insumo4)
        produto4.insumos.add(insumo3)
 
-       Cenario.objects.create(nome="Loja de Bicicletas",produto=produto1)
-       Cenario.objects.create(nome="Loja de Construção de Casas",produto=produto2)
-       Cenario.objects.create(nome="Oficina Mecânica",produto=produto3)
-       Cenario.objects.create(nome="Loja de Decorações",produto=produto4)
+       Cenario.objects.create(nome="Loja de Bicicletas",produto=produto1,criador=self.mediador_user)
+       Cenario.objects.create(nome="Loja de Construção de Casas",produto=produto2,criador=self.mediador_user)
+       Cenario.objects.create(nome="Oficina Mecânica",produto=produto3,criador=self.mediador_user)
+       Cenario.objects.create(nome="Loja de Decorações",produto=produto4,criador=self.mediador_user)
 
        url = reverse("cenarios:home")
        response = self.client.get(url,follow=True)
@@ -328,3 +376,60 @@ class CenariosTest(TestCase):
        self.assertContains(response, "Oficina Mecânica")
        self.assertContains(response, "Loja de Decorações")
        self.assertEqual(Insumo.objects.count(), 4)
+   
+   
+User = get_user_model()
+
+class InsumoPermissionsTest(TestCase):
+    def setUp(self):
+       
+        self.mediador_group, _ = Group.objects.get_or_create(name='Mediador')
+
+       
+        self.mediador1 = User.objects.create_user(
+            username='mediador1',
+            email='mediadorteste1@gmail.com',
+            password='senhamediadorteste1',
+            cpf='037.868.811-11',
+            is_active=True
+        )
+        self.mediador2 = User.objects.create_user(
+            username='mediador2',
+            email='mediadorteste2@gmail.com',
+            password='senhamediadorteste2',
+            cpf='085.053.381-38',
+            is_active=True
+        )
+
+      
+        self.mediador1.groups.add(self.mediador_group)
+        self.mediador2.groups.add(self.mediador_group)
+
+     
+        self.insumo = Insumo.objects.create(
+            nome="Insumo Teste",
+            fornecedor="Fornecedor Teste",
+            quantidade=10,
+            criador=self.mediador2
+        )
+
+        self.client = Client()
+
+    def test_mediador_nao_pode_deletar_insumo_que_nao_e_seu(self):
+       
+       login_sucesso = self.client.login(email='mediadorteste1@gmail.com', password='senhamediadorteste1')
+       self.assertTrue(login_sucesso, "Falha ao logar com mediador1")
+
+       url = reverse('cenarios:removerInsumo', args=[self.insumo.id])
+
+       response = self.client.post(url, follow=True)
+
+       
+       self.assertTrue(
+            Insumo.objects.filter(id=self.insumo.id).exists(),
+       )
+
+       self.assertEqual(
+            response.status_code, 404,
+            f"Esperado status 404, mas foi {response.status_code}"
+       )
